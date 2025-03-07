@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Orologio Roma</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="clock-container">
+        <div class="clock">
+            <span id="hours">00</span><span class="separator">:</span><span id="minutes">00</span><span class="separator">:</span><span id="seconds">00</span>
+        </div>
+        <div class="date" id="date"></div>
+    </div>
+
+    <div id="githubIcon" class="icon-button">
+        <i class="fab fa-github"></i>
+    </div>
+    <div id="infoIcon" class="icon-button">
+        <i class="fas fa-info"></i>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div id="infoModal" class="modal">
+        <div class="modal-header">
+            <h3>Informazioni</h3>
+        </div>
+        <p></p>
+        <div class="modal-footer">
+            <div></div>
+            <button id="closeInfoModal">Chiudi</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
