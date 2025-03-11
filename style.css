@@ -19,7 +19,7 @@ body {
     font-size: 5rem;
     font-weight: bold;
     color: #1a1a1a;
-    text-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+    text-shadow: 0 0 20px #0000001a;
     letter-spacing: normal;
 }
 
@@ -54,6 +54,11 @@ body {
 #githubIcon {
     right: 90px;
     background-color: #333;
+}
+
+#backIcon {
+    left: 20px;
+    background-color: #2196F3;
 }
 
 #infoIcon {
@@ -130,9 +135,9 @@ button:hover {
 }
 
 .icon-button i {
-    font-size: 1.55rem;
+    font-size: 1.55rem; /* Increased from 1.5rem to 1.8rem */
 }
 
 .clock .separator {
-    margin: 0 0.15em;
+    margin: 0 0.15em; /* Reduced from 0.2em to 0.15em */
 }
