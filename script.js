@@ -22,7 +22,6 @@ function updateClock() {
     document.getElementById('date').textContent = dateStr;
 }
 
-// Modal and buttons functionality
 document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('overlay');
     const githubIcon = document.getElementById('githubIcon');
@@ -30,7 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const infoModal = document.getElementById('infoModal');
     const closeInfoModal = document.getElementById('closeInfoModal');
     
-    // Set info modal content
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
         infoContent.innerHTML = 
@@ -40,14 +38,12 @@ document.addEventListener('DOMContentLoaded', function() {
             'Creato da <a href="https://lollo.framer.website" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v1.0';
     }
     
-    // GitHub button click handler
     if (githubIcon) {
         githubIcon.addEventListener('click', function() {
             window.open('https://github.com/lollo21x/clock', '_blank');
         });
     }
     
-    // Info button click handler
     if (infoIcon) {
         infoIcon.addEventListener('click', function() {
             overlay.style.display = 'block';
@@ -55,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Close modal handler
     if (closeInfoModal) {
         closeInfoModal.addEventListener('click', function() {
             overlay.style.display = 'none';
@@ -63,13 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Close modal when clicking overlay
     overlay.addEventListener('click', function() {
         overlay.style.display = 'none';
         infoModal.style.display = 'none';
     });
 });
 
-// Start the clock
 updateClock();
 setInterval(updateClock, 1000);
