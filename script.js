@@ -25,6 +25,7 @@ function updateClock() {
 document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('overlay');
     const githubIcon = document.getElementById('githubIcon');
+    const backIcon = document.getElementById('backIcon');
     const infoIcon = document.getElementById('infoIcon');
     const infoModal = document.getElementById('infoModal');
     const closeInfoModal = document.getElementById('closeInfoModal');
@@ -41,6 +42,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (githubIcon) {
         githubIcon.addEventListener('click', function() {
             window.open('https://github.com/lollo21x/clock', '_blank');
+        });
+    }
+    
+    if (backIcon) {
+        backIcon.addEventListener('click', function() {
+            window.location.href = 'https://lollo21x.github.io/hub3d/';
         });
     }
     
