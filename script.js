@@ -1,7 +1,11 @@
-// Utilizziamo direttamente l'API di timeapi.io che supporta JSONP (funziona anche in ambiente locale)
+// Variabili globali per gestire l'offset e la sincronizzazione
 let serverTimeOffset = 0;
 let lastSyncTime = 0;
+let isSyncing = false;
+let syncRetries = 0;
+const MAX_RETRIES = 3;
 
+// Funzione per aggiornare l'orologio
 function updateClock() {
     // Ottieni l'ora corrente con l'offset applicato (se disponibile)
     const now = new Date(Date.now() + serverTimeOffset);
@@ -29,47 +33,161 @@ function updateClock() {
     
     // Verifica se è necessario risincronizzare (ogni ora)
     const currentTime = Date.now();
-    if (currentTime - lastSyncTime > 3600000) { // 1 ora in millisecondi
+    if (currentTime - lastSyncTime > 3600000 && !isSyncing) { // 1 ora in millisecondi
         syncTimeWithServer();
     }
 }
 
-// Funzione per sincronizzare l'ora con il server utilizzando timeapi.io via JSONP
-function syncTimeWithServer() {
-    // Crea un elemento script per la richiesta JSONP
-    const script = document.createElement('script');
-    script.src = 'https://timeapi.io/api/Time/current/zone?timeZone=Europe/Rome&callback=processTimeResponse';
-    document.body.appendChild(script);
-    
-    // Dopo che lo script è stato utilizzato, lo rimuoviamo
-    script.onload = function() {
-        document.body.removeChild(script);
-    };
-    
-    // Aggiorna l'ultimo tempo di sincronizzazione
-    lastSyncTime = Date.now();
+// Ottieni l'orario dal server utilizzando l'API time.is
+async function syncWithTimeis() {
+    try {
+        updateSyncStatus('Sincronizzazione con time.is...');
+        const requestStartTime = Date.now();
+        
+        // Utilizziamo un proxy CORS per accedere a time.is
+        const response = await fetch('https://cors-anywhere.herokuapp.com/https://time.is/');
+        
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status}`);
+        }
+        
+        const text = await response.text();
+        const requestEndTime = Date.now();
+        
+        // Estraiamo il timestamp dalla risposta HTML usando regex
+        const match = text.match(/<div id="clock" data-time="(\d+)"/);
+        if (match && match[1]) {
+            const serverTimestamp = parseInt(match[1]) * 1000; // converte in millisecondi
+            const latency = (requestEndTime - requestStartTime) / 2;
+            
+            // Calcola l'offset
+            const localTime = new Date();
+            serverTimeOffset = serverTimestamp - localTime.getTime() + latency;
+            
+            console.log('Sincronizzazione time.is completata. Offset:', serverTimeOffset, 'ms');
+            console.log('Latenza stimata:', latency, 'ms');
+            
+            return true;
+        }
+        throw new Error('Impossibile estrarre l\'orario da time.is');
+    } catch (error) {
+        console.error('Errore durante la sincronizzazione con time.is:', error);
+        return false;
+    }
 }
 
-// Questa funzione sarà chiamata dalla risposta JSONP
-window.processTimeResponse = function(data) {
+// Metodo fallback che utilizza l'ora del browser corretta
+function useLocalTimeFallback() {
+    console.log('Utilizzando l\'ora locale come fallback');
+    serverTimeOffset = 0;
+    updateSyncStatus('Ora locale in uso (no sincronizzazione server)', true);
+    lastSyncTime = Date.now();
+    syncRetries = 0;
+    return true;
+}
+
+// Funzione principale per sincronizzare l'ora, con diversi metodi
+async function syncTimeWithServer() {
+    if (isSyncing) return;
+    isSyncing = true;
+    updateSyncStatus('Sincronizzazione in corso...');
+    
     try {
-        // Creiamo un oggetto data dal timestamp server
-        const localTime = new Date();
-        const serverTime = new Date(data.dateTime);
+        // Prova prima con timeapi.io
+        const success = await syncWithTimeApi();
         
-        // Calcoliamo l'offset
-        serverTimeOffset = serverTime.getTime() - localTime.getTime();
-        
-        console.log('Sincronizzazione completata. Offset:', serverTimeOffset, 'ms');
-        console.log('Ora server:', serverTime.toLocaleTimeString('it-IT'));
-        console.log('Ora locale:', localTime.toLocaleTimeString('it-IT'));
-        
-        // Aggiorna immediatamente l'orologio con il nuovo offset
-        updateClock();
+        if (success) {
+            lastSyncTime = Date.now();
+            syncRetries = 0;
+            updateSyncStatus(`Sincronizzato con il server (offset: ${serverTimeOffset}ms)`);
+        } else {
+            // Se fallisce, prova con time.is
+            const timeIsSuccess = await syncWithTimeis();
+            
+            if (timeIsSuccess) {
+                lastSyncTime = Date.now();
+                syncRetries = 0;
+                updateSyncStatus(`Sincronizzato con time.is (offset: ${serverTimeOffset}ms)`);
+            } else {
+                // Se entrambi falliscono, incrementa i tentativi
+                syncRetries++;
+                
+                if (syncRetries >= MAX_RETRIES) {
+                    // Dopo troppi tentativi, usa l'ora locale
+                    useLocalTimeFallback();
+                } else {
+                    // Riprova tra poco
+                    updateSyncStatus(`Errore di sincronizzazione. Tentativo ${syncRetries}/${MAX_RETRIES}. Riprovo tra 10 secondi...`, true);
+                    setTimeout(syncTimeWithServer, 10000);
+                }
+            }
+        }
     } catch (error) {
         console.error('Errore durante la sincronizzazione:', error);
+        syncRetries++;
+        
+        if (syncRetries >= MAX_RETRIES) {
+            useLocalTimeFallback();
+        } else {
+            updateSyncStatus(`Errore di sincronizzazione. Tentativo ${syncRetries}/${MAX_RETRIES}. Riprovo tra 10 secondi...`, true);
+            setTimeout(syncTimeWithServer, 10000);
+        }
+    } finally {
+        isSyncing = false;
     }
-};
+}
+
+// Sincronizzazione con timeapi.io usando fetch
+async function syncWithTimeApi() {
+    try {
+        updateSyncStatus('Sincronizzazione con il server...');
+        const requestStartTime = Date.now();
+        
+        // Utilizziamo timeapi.io con fetch invece di JSONP
+        const response = await fetch('https://timeapi.io/api/Time/current/zone?timeZone=Europe/Rome', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Errore HTTP: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        const requestEndTime = Date.now();
+        
+        // Tempo di latenza stimato
+        const latency = (requestEndTime - requestStartTime) / 2;
+        
+        // Calcoliamo l'ora del server
+        const serverTime = new Date(data.dateTime);
+        const localTime = new Date();
+        
+        // Calcoliamo l'offset tenendo conto della latenza
+        serverTimeOffset = serverTime.getTime() - localTime.getTime() + latency;
+        
+        console.log('Sincronizzazione con il server completata. Offset:', serverTimeOffset, 'ms');
+        console.log('Ora server:', serverTime.toLocaleTimeString('it-IT'));
+        console.log('Ora locale:', localTime.toLocaleTimeString('it-IT'));
+        console.log('Latenza stimata:', latency, 'ms');
+        
+        return true;
+    } catch (error) {
+        console.error('Errore durante la sincronizzazione con il server:', error);
+        return false;
+    }
+}
+
+// Funzione per aggiornare lo stato della sincronizzazione nell'UI
+function updateSyncStatus(message, isError = false) {
+    const status = document.getElementById('sync-status');
+    if (status) {
+        status.innerHTML = message;
+        status.style.color = isError ? '#ff6b6b' : '#52b788';
+    }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('overlay');
@@ -83,7 +201,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (infoContent) {
         infoContent.innerHTML = 
             'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' +
-            'Sincronizzato con TimeAPI.io per garantire la massima precisione.' +
+            'Sincronizzato per garantire la massima precisione.' +
             '<br><br>' +
             'Creato da <a href="https://lollo.framer.website" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v1.1';
     }
@@ -119,6 +237,20 @@ document.addEventListener('DOMContentLoaded', function() {
         infoModal.style.display = 'none';
     });
     
+    // Crea indicatore di stato se non esiste
+    const clockContainer = document.querySelector('.clock-container');
+    let statusIndicator = document.getElementById('sync-status');
+    
+    if (!statusIndicator) {
+        statusIndicator = document.createElement('div');
+        statusIndicator.id = 'sync-status';
+        statusIndicator.style.fontSize = '0.8rem';
+        statusIndicator.style.color = '#999';
+        statusIndicator.style.marginTop = '10px';
+        statusIndicator.innerHTML = 'Sincronizzazione in corso...';
+        clockContainer.appendChild(statusIndicator);
+    }
+    
     // Sincronizza subito l'ora con il server
     syncTimeWithServer();
     
@@ -126,28 +258,18 @@ document.addEventListener('DOMContentLoaded', function() {
     updateClock();
     setInterval(updateClock, 1000);
     
-    // Aggiungi indicatore di stato per debug
-    const clockContainer = document.querySelector('.clock-container');
-    const statusIndicator = document.createElement('div');
-    statusIndicator.id = 'sync-status';
-    statusIndicator.style.fontSize = '0.8rem';
-    statusIndicator.style.color = '#999';
-    statusIndicator.style.marginTop = '10px';
-    statusIndicator.innerHTML = 'Sincronizzazione in corso...';
-    clockContainer.appendChild(statusIndicator);
-    
     // Aggiorna l'indicatore ogni 5 secondi
     setInterval(function() {
-        const status = document.getElementById('sync-status');
-        if (status) {
+        if (!isSyncing) {
             const timeSinceSync = Math.floor((Date.now() - lastSyncTime) / 1000);
-            if (serverTimeOffset !== 0) {
-                status.innerHTML = `Ultimo aggiornamento: ${timeSinceSync} secondi fa (offset: ${serverTimeOffset}ms)`;
-                status.style.color = timeSinceSync > 3600 ? '#ff6b6b' : '#52b788';
-            } else {
-                status.innerHTML = 'Sincronizzazione in corso...';
-                status.style.color = '#ffa500';
+            if (lastSyncTime > 0) {
+                updateSyncStatus(`Ultimo aggiornamento: ${timeSinceSync} secondi fa (offset: ${serverTimeOffset}ms)`, timeSinceSync > 3600);
             }
         }
     }, 5000);
+    
+    // Refresh automatico della pagina ogni 30 minuti (1800000 millisecondi)
+    setInterval(function() {
+        window.location.reload();
+    }, 900000);
 });
