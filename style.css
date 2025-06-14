@@ -24,7 +24,7 @@ body {
 }
 
 .clock .separator {
-    margin: 0 0.2em;
+    margin: 0 0.2em; /* Reduced from 0.2em to 0.15em */
 }
 
 .date {
@@ -58,12 +58,12 @@ body {
 
 #backIcon {
     left: 20px;
-    background-color: #2196F3;
+    background-color: #1b912b;
 }
 
 #infoIcon {
     right: 20px;
-    background-color: #2196F3;
+    background-color: #1b912b;
 }
 
 .overlay {
@@ -121,7 +121,7 @@ button {
     padding: 8px 16px;
     border: none;
     border-radius: 50px;
-    background-color: #2196F3;
+    background-color: #1b912b;
     color: white;
     cursor: pointer;
     font-size: 16px;
@@ -136,8 +136,4 @@ button:hover {
 
 .icon-button i {
     font-size: 1.55rem; /* Increased from 1.5rem to 1.8rem */
-}
-
-.clock .separator {
-    margin: 0 0.15em; /* Reduced from 0.2em to 0.15em */
 }
