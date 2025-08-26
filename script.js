@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (backIcon) {
         backIcon.addEventListener('click', function() {
-            window.location.href = 'https://lollo21x.github.io/hub3d/';
+            window.location.href = 'https://hub4d.lollo.dpdns.org';
         });
     }
     
