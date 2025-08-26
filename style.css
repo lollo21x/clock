@@ -11,6 +11,11 @@ body {
     font-family: 'Montserrat', sans-serif;
 }
 
+::selection {
+      background-color: #1b912b;
+      color: #fff;
+}
+
 .clock-container {
     text-align: center;
 }
