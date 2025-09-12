@@ -11,6 +11,40 @@ body {
     font-family: 'Montserrat', sans-serif;
 }
 
+.ad-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+}
+
+.center-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.adplugg-tag {
+    min-height: 100px;
+    width: 100%;
+    max-width: 300px;
+}
+
+.adplugg-tag.left,
+.adplugg-tag.right {
+    min-width: 100px;
+    min-height: 200px;
+    max-width: 150px;
+}
+
+.adplugg-tag.top,
+.adplugg-tag.bottom {
+    min-height: 100px;
+    width: 100%;
+    max-width: 300px;
+}
+
 ::selection {
       background-color: #1b912b;
       color: #fff;
