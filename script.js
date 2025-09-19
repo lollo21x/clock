@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' +
             'Sincronizzato per garantire la massima precisione.' +
             '<br><br>' +
-            'Creato da <a href="https://lollo.framer.website" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v1.1';
+            'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v1.1';
     }
     
     if (githubIcon) {
