@@ -1,6 +1,6 @@
 # ⏰ Orologio Digitale Roma
 
-Benvenuti nell'**Orologio della 3D**, un semplice e preciso strumento per visualizzare l'ora esatta di Roma (Italia). Scopriamo insieme come funziona e quali sono le sue caratteristiche principali.
+Benvenuti nell'**Orologio della 4D**, un semplice e preciso strumento per visualizzare l'ora esatta di Roma (Italia). Scopriamo insieme come funziona e quali sono le sue caratteristiche principali.
 
 ## 🕒 Perché Questo Orologio è Preciso?
 
