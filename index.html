@@ -11,6 +11,19 @@
     <meta name="apple-mobile-web-app-title" content="Clock" />
     <link rel="manifest" href="icons/site.webmanifest" />
     <link rel="stylesheet" href="style.css">
+    <!-- Font links -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400..800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300..700;1,300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inknut+Antiqua:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:ital,wght@0,400..700;1,400..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
 </head>
 <body>
             <div class="clock-container">
@@ -26,21 +39,64 @@
     <div id="backIcon" class="icon-button">
         <i class="fas fa-arrow-left"></i>
     </div>
-    <div id="infoIcon" class="icon-button">
-        <i class="fas fa-info"></i>
-    </div>
+     <div id="settingsIcon" class="icon-button">
+         <i class="fas fa-cog"></i>
+     </div>
+     <div id="infoIcon" class="icon-button">
+         <i class="fas fa-info"></i>
+     </div>
 
-    <div class="overlay" id="overlay"></div>
-    <div id="infoModal" class="modal">
-        <div class="modal-header">
-            <h3>Informazioni</h3>
-        </div>
-        <p></p>
-        <div class="modal-footer">
-            <div></div>
-            <button id="closeInfoModal">Chiudi</button>
-        </div>
-    </div>
+     <div class="overlay" id="overlay"></div>
+     <div id="settingsModal" class="modal">
+         <div class="modal-header">
+             <h3>Impostazioni</h3>
+         </div>
+         <div class="settings-content">
+             <div class="settings-section">
+                 <h4>Font</h4>
+                 <select id="fontSelect">
+                     <option value="Montserrat">Predefinito (Montserrat)</option>
+                     <option value="Space Mono">Space Mono</option>
+                     <option value="Syne">Syne</option>
+                     <option value="Rubik">Rubik</option>
+                     <option value="Instrument Serif">Instrument Serif</option>
+                     <option value="Orbitron">Orbitron</option>
+                 </select>
+                 <select id="weightSelect">
+                     <option value="300">Leggero</option>
+                     <option value="400">Normale</option>
+                     <option value="600">Semi-Grassetto</option>
+                     <option value="900">Grassetto</option>
+                 </select>
+             </div>
+              <div class="settings-section">
+                  <h4>Avanzate</h4>
+                  <button id="forceSync">Forza Sincronizzazione</button>
+                  <div class="toggle-container">
+                      <span class="toggle-label">Mostra offset</span>
+                      <label class="toggle" for="showOffsetToggle">
+                          <input type="checkbox" id="showOffsetToggle">
+                          <span class="toggle-slider"></span>
+                      </label>
+                  </div>
+              </div>
+         </div>
+          <div class="modal-footer">
+              <div></div>
+              <button id="closeSettingsModal">Salva</button>
+          </div>
+     </div>
+
+     <div id="infoModal" class="modal">
+         <div class="modal-header">
+             <h3>Informazioni</h3>
+         </div>
+         <p></p>
+         <div class="modal-footer">
+             <div></div>
+             <button id="closeInfoModal">Chiudi</button>
+         </div>
+     </div>
 
     <script src="script.js"></script>
 </body>
