@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const closeInfoModal = document.getElementById('closeInfoModal');
     const fontSelect = document.getElementById('fontSelect');
     const weightSelect = document.getElementById('weightSelect');
+    const backgroundSelect = document.getElementById('backgroundSelect');
     const forceSyncBtn = document.getElementById('forceSync');
 
 
@@ -195,7 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' +
             'Sincronizzato per garantire la massima precisione.' +
             '<br><br>' +
-            'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.0';
+            'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.1';
     }
     
     if (githubIcon) {
@@ -209,14 +210,69 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'https://hub4d.lollo.dpdns.org';
         });
     }
-    
+
+    // Crea la pillola per status e pulse
+    let statusPill = document.getElementById('status-pill');
+    if (!statusPill) {
+        statusPill = document.createElement('div');
+        statusPill.id = 'status-pill';
+        statusPill.style.position = 'fixed';
+        statusPill.style.bottom = '20px';
+        statusPill.style.left = '50%';
+        statusPill.style.transform = 'translateX(-50%)';
+        statusPill.style.height = '50px';
+        statusPill.style.backgroundColor = 'white';
+        statusPill.style.borderRadius = '25px';
+        statusPill.style.display = 'flex';
+        statusPill.style.alignItems = 'center';
+        statusPill.style.padding = '0 20px';
+        statusPill.style.transition = 'all 0.3s ease-in-out';
+        statusPill.style.willChange = 'width';
+
+        document.body.appendChild(statusPill);
+    }
+
+    // Crea l'animazione pulse se non esiste
+    let pulseIndicator = document.getElementById('pulse-indicator');
+    if (!pulseIndicator) {
+        pulseIndicator = document.createElement('div');
+        pulseIndicator.id = 'pulse-indicator';
+        pulseIndicator.className = 'pulse';
+        pulseIndicator.style.display = 'none'; // Nascondi inizialmente
+        const pulseInner = document.createElement('div');
+        pulseInner.className = 'pulse-inner';
+        pulseIndicator.appendChild(pulseInner);
+        const pulseFixed = document.createElement('div');
+        pulseFixed.className = 'pulse-fixed';
+        pulseIndicator.appendChild(pulseFixed);
+        const pulseContent = document.createElement('div');
+        pulseContent.className = 'pulse-content';
+        pulseIndicator.appendChild(pulseContent);
+        statusPill.appendChild(pulseIndicator);
+    }
+
+    // Crea indicatore di stato se non esiste
+    let statusIndicator = document.getElementById('sync-status');
+    if (!statusIndicator) {
+        statusIndicator = document.createElement('div');
+        statusIndicator.id = 'sync-status';
+        statusIndicator.style.fontSize = '0.8rem';
+        statusIndicator.style.color = '#999';
+        statusIndicator.style.transition = 'opacity 0.3s ease';
+        statusIndicator.innerHTML = 'Sincronizzazione in corso...';
+        statusPill.appendChild(statusIndicator);
+    }
+
     // Load saved settings
     const savedFont = localStorage.getItem('clockFont') || 'Montserrat';
     const savedWeight = localStorage.getItem('clockWeight') || '400';
+    const savedBackground = localStorage.getItem('clockBackground') || '#f8f9fa';
     const showOffset = localStorage.getItem('showOffset') === 'true';
     applyFont(savedFont, savedWeight);
+    applyBackground(savedBackground);
     if (fontSelect) fontSelect.value = savedFont;
     if (weightSelect) weightSelect.value = savedWeight;
+    if (backgroundSelect) backgroundSelect.value = savedBackground;
     if (document.getElementById('showOffsetToggle')) document.getElementById('showOffsetToggle').checked = showOffset;
 
     // Toggle weight select
@@ -265,8 +321,11 @@ document.addEventListener('DOMContentLoaded', function() {
             // Save current settings
             const font = fontSelect.value;
             const weight = weightSelect.value;
+            const background = backgroundSelect.value;
             localStorage.setItem('clockFont', font);
             localStorage.setItem('clockWeight', weight);
+            localStorage.setItem('clockBackground', background);
+            applyBackground(background);
             closeModal(settingsModal);
         });
     }
@@ -303,6 +362,8 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.setItem('clockWeight', weight);
         });
     }
+
+
 
     if (forceSyncBtn) {
         forceSyncBtn.addEventListener('click', function() {
@@ -366,6 +427,14 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    function applyBackground(color) {
+        document.body.style.backgroundColor = color;
+        const statusPill = document.getElementById('status-pill');
+        if (statusPill) {
+            statusPill.style.backgroundColor = color === '#ffffff' ? '#f8f9fa' : 'white';
+        }
+    }
+
     function toggleWeightSelect(font) {
         const weightSelect = document.getElementById('weightSelect');
         if (font === 'Montserrat') {
@@ -373,58 +442,6 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             weightSelect.style.display = 'block';
         }
-    }
-    
-    // Crea la pillola per status e pulse
-    let statusPill = document.getElementById('status-pill');
-    if (!statusPill) {
-        statusPill = document.createElement('div');
-        statusPill.id = 'status-pill';
-        statusPill.style.position = 'fixed';
-        statusPill.style.bottom = '20px';
-        statusPill.style.left = '50%';
-        statusPill.style.transform = 'translateX(-50%)';
-        statusPill.style.height = '50px';
-        statusPill.style.backgroundColor = 'white';
-        statusPill.style.borderRadius = '25px';
-        statusPill.style.display = 'flex';
-        statusPill.style.alignItems = 'center';
-        statusPill.style.padding = '0 20px';
-        statusPill.style.transition = 'all 0.3s ease-in-out';
-        statusPill.style.willChange = 'width';
-
-        document.body.appendChild(statusPill);
-    }
-
-    // Crea l'animazione pulse se non esiste
-    let pulseIndicator = document.getElementById('pulse-indicator');
-    if (!pulseIndicator) {
-        pulseIndicator = document.createElement('div');
-        pulseIndicator.id = 'pulse-indicator';
-        pulseIndicator.className = 'pulse';
-        pulseIndicator.style.display = 'none'; // Nascondi inizialmente
-        const pulseInner = document.createElement('div');
-        pulseInner.className = 'pulse-inner';
-        pulseIndicator.appendChild(pulseInner);
-        const pulseFixed = document.createElement('div');
-        pulseFixed.className = 'pulse-fixed';
-        pulseIndicator.appendChild(pulseFixed);
-        const pulseContent = document.createElement('div');
-        pulseContent.className = 'pulse-content';
-        pulseIndicator.appendChild(pulseContent);
-        statusPill.appendChild(pulseIndicator);
-    }
-
-    // Crea indicatore di stato se non esiste
-    let statusIndicator = document.getElementById('sync-status');
-    if (!statusIndicator) {
-        statusIndicator = document.createElement('div');
-        statusIndicator.id = 'sync-status';
-        statusIndicator.style.fontSize = '0.8rem';
-        statusIndicator.style.color = '#999';
-        statusIndicator.style.transition = 'opacity 0.3s ease';
-        statusIndicator.innerHTML = 'Sincronizzazione in corso...';
-        statusPill.appendChild(statusIndicator);
     }
     
     // Sincronizza subito l'ora con il server

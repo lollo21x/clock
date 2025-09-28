@@ -7,7 +7,6 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: #f8f9fa;
     font-family: 'Montserrat', sans-serif;
     overflow: hidden; /* Previene scorrimento */
 }
