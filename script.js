@@ -5,26 +5,26 @@ let isSyncing = false;
 
 // --- IMPOSTAZIONI ORARIO SCOLASTICO ---
 const orarioScolastico = {
-    1: ["Scienze", "Scienze", "Italiano", "Matematica", "Informatica", "Religione"], // Lunedì (+ Test Religione)
-    2: ["Arte", "Matematica", "Matematica", "Fisica", "Inglese"],
-    3: ["Informatica", "Scienze", "Italiano", "Italiano", "Storia"],
-    4: ["Fisica", "Scienze", "Scienze", "Inglese", "Arte"],
-    5: ["Ginnastica", "Ginnastica", "Matematica", "Italiano", "Inglese"],
-    6: ["Storia", "Religione", "Fisica", "Filosofia", "Filosofia"]
+    1: ["Matematica", "Matematica", "Inglese", "Italiano", "Italiano", "Religione"], // Lunedì (+ Test Religione)
+    2: ["Fisica", "Arte", "Informatica", "Religione", "Inglese"],
+    3: ["Scienze", "Scienze", "Inglese", "Italiano", "Matematica"],
+    4: ["Storia", "Fisica", "Scienze", "Scienze", "Scienze"],
+    5: ["Ginnastica", "Ginnastica", "Arte", "Italiano", "Matematica"],
+    6: ["Informatica", "Storia", "Filosofia", "Filosofia", "Fisica"]
 };
 
 const materiaColori = {
     "Arte": "#D81B60",
-    "Ginnastica": "#8D6E63",
-    "Fisica": "#43A047",
-    "Informatica": "#424242",
+    "Ginnastica": "#995C43",
+    "Fisica": "#3CB040",
+    "Informatica": "#636363",
     "Inglese": "#1E88E5",
     "Italiano": "#0D47A1",
     "Matematica": "#D32F2F",
-    "Storia": "#880E4F",
-    "Scienze": "#6A1B9A",
-    "Filosofia": "#FB8C00",
-    "Religione": "#F9A825", // Giallo Scuro
+    "Storia": "#D6A127",
+    "Scienze": "#9824AD",
+    "Filosofia": "#007CBF",
+    "Religione": "#F9C025", // Giallo Scuro
     "Ricreazione": "#757575"
 };
 
