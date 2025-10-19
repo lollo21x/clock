@@ -5,12 +5,12 @@ let isSyncing = false;
 
 // --- IMPOSTAZIONI ORARIO SCOLASTICO ---
 const orarioScolastico = {
-    1: ["Matematica", "Matematica", "Inglese", "Italiano", "Italiano", "Religione"], // Lunedì (+ Test Religione)
-    2: ["Fisica", "Arte", "Informatica", "Religione", "Inglese"],
-    3: ["Scienze", "Scienze", "Inglese", "Italiano", "Matematica"],
-    4: ["Storia", "Fisica", "Scienze", "Scienze", "Scienze"],
-    5: ["Ginnastica", "Ginnastica", "Arte", "Italiano", "Matematica"],
-    6: ["Informatica", "Storia", "Filosofia", "Filosofia", "Fisica"]
+    1: ["Scienze", "Scienze", "Matematica", "Matematica", "Inglese", "Religione"], // Lunedì (+ Test Religione)
+    2: ["Informatica", "Religione", "Fisica", "Inglese", "Italiano"],
+    3: ["Scienze", "Scienze", "Italiano", "Arte", "Matematica"],
+    4: ["Inglese", "Storia", "Filosofia", "Fisica", "Scienze"],
+    5: ["Ginnastica", "Ginnastica", "Italiano", "Italiano", "Matematica"],
+    6: ["Storia", "Arte", "Filosofia", "Informatica", "Fisica"]
 };
 
 const materiaColori = {
