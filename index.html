@@ -32,15 +32,18 @@
                 <div class="date" id="date"></div>
             </div>
 
-    <div id="githubIcon" class="icon-button">
-        <i class="fab fa-github"></i>
-    </div>
-    <div id="backIcon" class="icon-button">
-        <i class="fas fa-arrow-left"></i>
-    </div>
-     <div id="settingsIcon" class="icon-button">
-         <i class="fas fa-cog"></i>
+     <div id="githubIcon" class="icon-button">
+         <i class="fab fa-github"></i>
      </div>
+     <div id="backIcon" class="icon-button">
+         <i class="fas fa-arrow-left"></i>
+     </div>
+      <div id="scheduleIcon" class="icon-button">
+          <i class="fas fa-table"></i>
+      </div>
+      <div id="settingsIcon" class="icon-button">
+          <i class="fas fa-cog"></i>
+      </div>
      <div id="infoIcon" class="icon-button">
          <i class="fas fa-info"></i>
      </div>
@@ -54,7 +57,7 @@
              <div class="settings-section">
                  <h4>Font</h4>
                  <select id="fontSelect">
-                     <option value="Montserrat">Predefinito (Montserrat)</option>
+                     <option value="Montserrat">Montserrat</option>
                      <option value="Space Mono">Space Mono</option>
                      <option value="Syne">Syne</option>
                      <option value="Rubik">Rubik</option>
@@ -68,18 +71,19 @@
                      <option value="900">Grassetto</option>
                  </select>
               </div>
-              <div class="settings-section">
-                  <h4>Sfondo</h4>
-                  <select id="backgroundSelect">
-                      <option value="#f8f9fa">Grigio (Predefinito)</option>
-                      <option value="#FAD2E3">Rosa</option>
-                      <option value="#BDEAFC">Celeste</option>
-                      <option value="#ffffff">Bianco</option>
-                      <option value="#CEF5CE">Verde</option>
-                      <option value="#FAE6C0">Arancione</option>
-                      <option value="#F0C9F2">Viola</option>
-                  </select>
-              </div>
+               <div class="settings-section">
+                   <h4>Sfondo</h4>
+                   <select id="backgroundSelect">
+                        <option value="automatico">Automatico</option>
+                        <option value="#D4D4D4">Grigio</option>
+                       <option value="#FAD2E3">Rosa</option>
+                       <option value="#BDEAFC">Celeste</option>
+                       <option value="#ffffff">Bianco</option>
+                       <option value="#CEF5CE">Verde</option>
+                       <option value="#FAE6C0">Arancione</option>
+                       <option value="#F0C9F2">Viola</option>
+                   </select>
+               </div>
                <div class="settings-section">
                    <h4>Avanzate</h4>
                   <button id="forceSync">Forza Sincronizzazione</button>
@@ -91,7 +95,7 @@
                       </label>
                   </div>
                   <div class="toggle-container">
-                      <span class="toggle-label">Mostra orario scolastico (beta)</span>
+                      <span class="toggle-label">Mostra orario scolastico</span>
                       <label class="toggle" for="showScheduleToggle">
                           <input type="checkbox" id="showScheduleToggle" checked>
                           <span class="toggle-slider"></span>
@@ -105,16 +109,82 @@
           </div>
      </div>
 
-     <div id="infoModal" class="modal">
-         <div class="modal-header">
-             <h3>Informazioni</h3>
-         </div>
-         <p></p>
-         <div class="modal-footer">
-             <div></div>
-             <button id="closeInfoModal">Chiudi</button>
-         </div>
-     </div>
+      <div id="infoModal" class="modal">
+          <div class="modal-header">
+              <h3>Informazioni</h3>
+          </div>
+          <p></p>
+          <div class="modal-footer">
+              <div></div>
+              <button id="closeInfoModal">Chiudi</button>
+          </div>
+      </div>
+
+      <div id="scheduleModal" class="modal">
+          <div class="modal-header">
+              <h3>Orario scolastico</h3>
+          </div>
+          <div class="schedule-table-container">
+              <table id="scheduleTable" class="schedule-table">
+                  <thead>
+                      <tr>
+                          <th>Lunedì</th>
+                          <th>Martedì</th>
+                          <th>Mercoledì</th>
+                          <th>Giovedì</th>
+                          <th>Venerdì</th>
+                          <th>Sabato</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                      <tr>
+                          <td>Scienze</td>
+                          <td>Informatica</td>
+                          <td>Scienze</td>
+                          <td>Inglese</td>
+                          <td>Ginnastica</td>
+                          <td>Storia</td>
+                      </tr>
+                      <tr>
+                          <td>Scienze</td>
+                          <td>Religione</td>
+                          <td>Scienze</td>
+                          <td>Storia</td>
+                          <td>Ginnastica</td>
+                          <td>Arte</td>
+                      </tr>
+                      <tr>
+                          <td>Matematica</td>
+                          <td>Fisica</td>
+                          <td>Italiano</td>
+                          <td>Filosofia</td>
+                          <td>Italiano</td>
+                          <td>Filosofia</td>
+                      </tr>
+                      <tr>
+                          <td>Matematica</td>
+                          <td>Inglese</td>
+                          <td>Arte</td>
+                          <td>Fisica</td>
+                          <td>Italiano</td>
+                          <td>Informatica</td>
+                      </tr>
+                      <tr>
+                          <td>Inglese</td>
+                          <td>Italiano</td>
+                          <td>Matematica</td>
+                          <td>Scienze</td>
+                          <td>Matematica</td>
+                          <td>Fisica</td>
+                      </tr>
+                  </tbody>
+              </table>
+          </div>
+          <div class="modal-footer">
+              <div></div>
+              <button id="closeScheduleModal">Chiudi</button>
+          </div>
+      </div>
 
     <script src="script.js"></script>
 </body>
