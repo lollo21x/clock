@@ -2,6 +2,7 @@
 let serverTimeOffset = 0;
 let lastSyncTime = 0;
 let isSyncing = false;
+let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
 
 // --- IMPOSTAZIONI ORARIO SCOLASTICO ---
 const orarioScolastico = {
@@ -24,8 +25,23 @@ const materiaColori = {
     "Storia": "#D6A127",
     "Scienze": "#9824AD",
     "Filosofia": "#007CBF",
-    "Religione": "#F9C025", // Giallo Scuro
+    "Religione": "#F9C025",
     "Ricreazione": "#757575"
+};
+
+const materiaColoriSfondo = {
+    "Arte": "#FFCFD7",
+    "Ginnastica": "#E8D4CD",
+    "Fisica": "#CEF5CE",
+    "Informatica": "#E4E4E4",
+    "Inglese": "#E2EAFB",
+    "Italiano": "#DDDBFF",
+    "Matematica": "#FFC4C4",
+    "Storia": "#FBEFDC",
+    "Scienze": "#F3CEF5",
+    "Filosofia": "#D0E1F5",
+    "Religione": "#FFF2D5",
+    "Ricreazione": "#E1E1E1"
 };
 
 const fasceOrarie = [
@@ -54,6 +70,9 @@ function updateClock() {
     const dateStr = now.toLocaleDateString('it-IT', dateOptions);
     document.getElementById('date').textContent = dateStr;
     updateScheduleWidget();
+    if (currentBackgroundMode === 'automatico') {
+        updateAutomaticBackground();
+    }
     const currentTime = Date.now();
     if (currentTime - lastSyncTime > 900000 && !isSyncing) {
         syncTimeWithServer();
@@ -147,11 +166,11 @@ async function syncTimeWithServer() {
             const pulse = document.getElementById('pulse-indicator');
             if (pulse) pulse.style.display = 'inline-block';
         } else {
-            updateSyncStatus('Errore di sincronizzazione. Mantenendo orario precedente.', true);
+            updateSyncStatus('Errore di sincronizzazione', true);
         }
     } catch (error) {
         console.error('Errore durante la sincronizzazione:', error);
-        updateSyncStatus('Errore di sincronizzazione. Mantenendo orario precedente.', true);
+        updateSyncStatus('Errore di sincronizzazione', true);
     } finally {
         isSyncing = false;
     }
@@ -191,16 +210,77 @@ function updateSyncStatus(message, isError = false) {
     }
 }
 
+function getMateriaForCurrentTime(now) {
+    const day = now.getDay();
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    if (day < 1 || day > 6) { // Domenica o giorno non valido
+        return null;
+    }
+
+    for (let i = 0; i < fasceOrarie.length; i++) {
+        const fascia = fasceOrarie[i];
+        const startMinutes = fascia.inizio.ore * 60 + fascia.inizio.minuti;
+        const endMinutes = fascia.fine.ore * 60 + fascia.fine.minuti;
+
+        if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+            if (fascia.nome === "Ricreazione") {
+                return "Ricreazione";
+            }
+            if (fascia.nome.startsWith("Ora")) {
+                const subjectIndex = fasceOrarie.slice(0, i + 1).filter(f => f.nome.startsWith("Ora")).length - 1;
+                const materia = (orarioScolastico[day] && orarioScolastico[day][subjectIndex]) ? orarioScolastico[day][subjectIndex] : null;
+                return materia;
+            }
+        }
+    }
+
+    return null; // Fuori orario scolastico
+}
+
+function updateAutomaticBackground() {
+    const now = new Date(Date.now() + serverTimeOffset);
+    const materia = getMateriaForCurrentTime(now);
+
+    let backgroundColor;
+    if (materia && materiaColoriSfondo[materia]) {
+        backgroundColor = materiaColoriSfondo[materia];
+    } else {
+        backgroundColor = '#D4D4D4'; // Grigio predefinito
+    }
+
+    document.body.style.backgroundColor = backgroundColor;
+    const pill = document.getElementById('status-pill');
+    if (pill) {
+        // Se lo sfondo del body è bianco, la pillola deve avere uno sfondo leggermente grigio per contrasto
+        pill.style.backgroundColor = backgroundColor === '#ffffff' ? '#f8f9fa' : 'white';
+    }
+}
+
+function applyBackground(color) {
+    currentBackgroundMode = color;
+    if (color === 'automatico') {
+        updateAutomaticBackground();
+    } else {
+        document.body.style.backgroundColor = color;
+        const pill = document.getElementById('status-pill');
+        if (pill) pill.style.backgroundColor = color === '#ffffff' ? '#f8f9fa' : 'white';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     const overlay = document.getElementById('overlay');
     const githubIcon = document.getElementById('githubIcon');
     const backIcon = document.getElementById('backIcon');
+    const scheduleIcon = document.getElementById('scheduleIcon');
     const settingsIcon = document.getElementById('settingsIcon');
     const infoIcon = document.getElementById('infoIcon');
     const settingsModal = document.getElementById('settingsModal');
     const infoModal = document.getElementById('infoModal');
+    const scheduleModal = document.getElementById('scheduleModal');
     const closeSettingsModal = document.getElementById('closeSettingsModal');
     const closeInfoModal = document.getElementById('closeInfoModal');
+    const closeScheduleModal = document.getElementById('closeScheduleModal');
     const fontSelect = document.getElementById('fontSelect');
     const weightSelect = document.getElementById('weightSelect');
     const backgroundSelect = document.getElementById('backgroundSelect');
@@ -208,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.2';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.5';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub4d.lollo.dpdns.org');
@@ -288,7 +368,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Caricamento Impostazioni
     const savedFont = localStorage.getItem('clockFont') || 'Montserrat';
     const savedWeight = localStorage.getItem('clockWeight') || '400';
-    const savedBackground = localStorage.getItem('clockBackground') || '#f8f9fa';
+    const savedBackground = localStorage.getItem('clockBackground') || 'automatico';
     const showOffset = localStorage.getItem('showOffset') === 'true';
     const showSchedule = localStorage.getItem('showSchedule') !== 'false';
     applyFont(savedFont, savedWeight);
@@ -303,6 +383,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     toggleWeightSelect(savedFont);
 
+    if (scheduleIcon) scheduleIcon.addEventListener('click', () => openModal(scheduleModal));
     if (settingsIcon) settingsIcon.addEventListener('click', () => openModal(settingsModal));
     if (infoIcon) infoIcon.addEventListener('click', () => openModal(infoModal));
 
@@ -333,16 +414,19 @@ document.addEventListener('DOMContentLoaded', function() {
         closeSettingsModal.addEventListener('click', () => {
             localStorage.setItem('clockFont', fontSelect.value);
             localStorage.setItem('clockWeight', weightSelect.value);
-            localStorage.setItem('clockBackground', backgroundSelect.value);
-            applyBackground(backgroundSelect.value);
+            const selectedBackground = backgroundSelect.value;
+            localStorage.setItem('clockBackground', selectedBackground);
+            applyBackground(selectedBackground);
             closeModal(settingsModal);
         });
     }
 
+    if (closeScheduleModal) closeScheduleModal.addEventListener('click', () => closeModal(scheduleModal));
     if (closeInfoModal) closeInfoModal.addEventListener('click', () => closeModal(infoModal));
     overlay.addEventListener('click', () => {
         if (settingsModal.style.display === 'block') closeModal(settingsModal);
         else if (infoModal.style.display === 'block') closeModal(infoModal);
+        else if (scheduleModal.style.display === 'block') closeModal(scheduleModal);
     });
 
     if (fontSelect) {
@@ -368,20 +452,21 @@ document.addEventListener('DOMContentLoaded', function() {
         if (date) { date.style.fontFamily = fontFamily; date.style.fontWeight = fontWeight; }
     }
 
-    function applyBackground(color) {
-        document.body.style.backgroundColor = color;
-        const pill = document.getElementById('status-pill');
-        if (pill) pill.style.backgroundColor = color === '#ffffff' ? '#f8f9fa' : 'white';
-    }
-
     function toggleWeightSelect(font) {
         if (weightSelect) weightSelect.style.display = font === 'Montserrat' ? 'none' : 'block';
     }
     
+    // Evidenzia il giorno corrente nella tabella orario
+    const currentDay = new Date().getDay(); // 0=dom, 1=lun, ..., 6=sab
+    if (currentDay >= 1 && currentDay <= 6) {
+        const ths = document.querySelectorAll('#scheduleTable th');
+        ths[currentDay - 1].classList.add('current-day');
+    }
+
     syncTimeWithServer();
     updateClock();
     setInterval(updateClock, 1000);
-    
+
     setInterval(function() {
         if (!isSyncing && lastSyncTime > 0) {
             const timeSinceSync = Math.floor((Date.now() - lastSyncTime) / 1000);
