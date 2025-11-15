@@ -4,6 +4,227 @@ let lastSyncTime = 0;
 let isSyncing = false;
 let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
 
+// --- GESTIONE TEMI A EVENTO (MODULARE PER FUTURI EVENTI) ---
+const eventThemes = {
+    natale: {
+        name: 'natale',
+        desktopImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-desktop_wel7lu.png',
+        mobileImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-mobile_mrhqra.png',
+        clockColor: '#ffffff',
+        dateColor: '#ffffff',
+        applyButtonStyles: function() {
+            // Tutti i pulsanti: sfondo bianco, icona rossa
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.backgroundColor = '#ffffff';
+                    btn.style.color = '#dc2626';
+                }
+            });
+            // GitHub: sfondo rosso, icona bianca (invertito)
+            const githubBtn = document.getElementById('githubIcon');
+            if (githubBtn) {
+                githubBtn.style.backgroundColor = '#dc2626';
+                githubBtn.style.color = '#ffffff';
+            }
+            
+            // Cambia tutti i verdi in rossi nella tabella orario
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    const bgColor = th.style.backgroundColor || window.getComputedStyle(th).backgroundColor;
+                    // Se è verde (#1b912b o rgb equivalente), cambia in rosso
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)' || bgColor === '' || !th.style.backgroundColor) {
+                        th.style.backgroundColor = '#dc2626';
+                    }
+                });
+                // Cambia anche le caselle (td) verdi in rosso
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    // Se è verde, cambia in rosso
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                        td.style.backgroundColor = '#dc2626';
+                        td.style.color = 'white';
+                    }
+                });
+            }
+            
+            // Cambia tutti i verdi in rossi nei pulsanti (già fatto sopra, ma assicuriamoci)
+            // Cambia anche il colore del pulsante "Salva" nelle impostazioni
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#dc2626';
+            }
+            
+            // Cambia il colore del toggle quando è attivo
+            const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '#dc2626';
+            });
+            
+            // Cambia pulsanti "Chiudi"
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#dc2626';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#dc2626';
+            }
+            
+            // Cambia colore testo sincronizzazione (verde → rosso)
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus) {
+                // Salva il colore originale se non è già salvato
+                if (!syncStatus.dataset.originalColor) {
+                    const currentColor = syncStatus.style.color || window.getComputedStyle(syncStatus).color;
+                    syncStatus.dataset.originalColor = currentColor;
+                }
+                // Cambia a rosso solo se non è un errore (rosso già)
+                if (syncStatus.style.color !== '#ff6b6b' && syncStatus.style.color !== 'rgb(255, 107, 107)') {
+                    syncStatus.style.color = '#dc2626';
+                }
+            }
+            
+            // Cambia animazione sincronizzazione (cerchi verdi → rossi)
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = '#dc2626'; // Rosso
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = '#f87171'; // Rosso più chiaro
+            }
+            
+            // Cambia barra di progresso materia se è verde
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                    materiaProgress.style.backgroundColor = '#dc2626';
+                }
+            }
+            
+            // Cambia selezione testo (verde → rosso)
+            const style = document.createElement('style');
+            style.id = 'christmas-selection-style';
+            style.textContent = '::selection { background-color: #dc2626 !important; } ::-moz-selection { background-color: #dc2626 !important; }';
+            document.head.appendChild(style);
+            
+            // Aggiungi classe al body per tema natalizio
+            document.body.classList.add('christmas-theme');
+        },
+        removeButtonStyles: function() {
+            // Ripristina stili originali
+            const backIcon = document.getElementById('backIcon');
+            if (backIcon) {
+                backIcon.style.backgroundColor = '#1b912b';
+                backIcon.style.color = 'white';
+            }
+            const scheduleIcon = document.getElementById('scheduleIcon');
+            if (scheduleIcon) {
+                scheduleIcon.style.backgroundColor = '#1b912b';
+                scheduleIcon.style.color = 'white';
+            }
+            const settingsIcon = document.getElementById('settingsIcon');
+            if (settingsIcon) {
+                settingsIcon.style.backgroundColor = '#1b912b';
+                settingsIcon.style.color = 'white';
+            }
+            const infoIcon = document.getElementById('infoIcon');
+            if (infoIcon) {
+                infoIcon.style.backgroundColor = '#1b912b';
+                infoIcon.style.color = 'white';
+            }
+            const githubIcon = document.getElementById('githubIcon');
+            if (githubIcon) {
+                githubIcon.style.backgroundColor = '#333';
+                githubIcon.style.color = 'white';
+            }
+            
+            // Ripristina colori originali nella tabella orario
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    th.style.backgroundColor = '#1b912b';
+                });
+                // Ripristina anche le caselle (td) verdi
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    // Se era stato cambiato in rosso, ripristina
+                    if (bgColor === '#dc2626' || bgColor === 'rgb(220, 38, 38)') {
+                        td.style.backgroundColor = '';
+                        td.style.color = '';
+                    }
+                });
+            }
+            
+            // Ripristina colore pulsante "Salva"
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#1b912b';
+            }
+            
+            // Ripristina colore toggle
+            const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '#1b912b';
+            });
+            
+            // Ripristina pulsanti "Chiudi"
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#1b912b';
+            }
+            
+            // Ripristina colore testo sincronizzazione
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus && syncStatus.dataset.originalColor) {
+                syncStatus.style.color = syncStatus.dataset.originalColor;
+                delete syncStatus.dataset.originalColor;
+            }
+            
+            // Ripristina animazione sincronizzazione (cerchi verdi)
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = 'rgb(74, 222, 128)'; // Verde originale
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = 'rgb(74, 222, 128)'; // Verde originale
+            }
+            
+            // Ripristina barra di progresso materia se era stata cambiata
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#dc2626' || bgColor === 'rgb(220, 38, 38)') {
+                    // Ripristina al colore originale basato sulla materia
+                    materiaProgress.style.backgroundColor = '';
+                }
+            }
+            
+            // Rimuovi stile selezione testo
+            const selectionStyle = document.getElementById('christmas-selection-style');
+            if (selectionStyle) {
+                selectionStyle.remove();
+            }
+            
+            // Rimuovi classe dal body
+            document.body.classList.remove('christmas-theme');
+        }
+    }
+};
+
 // --- IMPOSTAZIONI ORARIO SCOLASTICO ---
 const orarioScolastico = {
     1: ["Scienze", "Scienze", "Matematica", "Matematica", "Inglese", "Religione"], // Lunedì (+ Test Religione)
@@ -108,7 +329,11 @@ function updateScheduleWidget() {
                     materia = (orarioScolastico[day] && orarioScolastico[day][subjectIndex]) ? orarioScolastico[day][subjectIndex] : "Pausa";
                 }
                 
-                const color = materiaColori[materia] || "#000000";
+                let color = materiaColori[materia] || "#000000";
+                // Se siamo in modalità natalizia e il colore è verde, cambia in rosso
+                if (currentBackgroundMode === 'natale' && (color === '#1b912b' || color === 'rgb(27, 145, 43)')) {
+                    color = '#dc2626';
+                }
                 document.getElementById('materia-nome').textContent = materia;
                 document.getElementById('materia-nome').style.color = color;
                 document.getElementById('materia-percentuale').textContent = `${percentage}%`;
@@ -204,7 +429,13 @@ function updateSyncStatus(message, isError = false) {
         status.style.opacity = '0';
         setTimeout(() => {
             status.innerHTML = message;
-            status.style.color = isError ? '#ff6b6b' : '#1b912b';
+            // Se siamo in modalità natalizia, usa rosso invece di verde
+            const isChristmasTheme = currentBackgroundMode === 'natale';
+            if (isError) {
+                status.style.color = '#ff6b6b';
+            } else {
+                status.style.color = isChristmasTheme ? '#dc2626' : '#1b912b';
+            }
             status.style.opacity = '1';
         }, 150);
     }
@@ -258,17 +489,96 @@ function updateAutomaticBackground() {
 }
 
 function applyBackground(color) {
+    const clock = document.querySelector('.clock');
+    const date = document.querySelector('.date');
+    let blurOverlay = document.getElementById('event-blur-overlay');
+    const eventTheme = eventThemes[color];
+    
+    // Rimuovi tutti i temi a evento attivi
+    Object.keys(eventThemes).forEach(themeKey => {
+        if (eventThemes[themeKey].removeButtonStyles) {
+            eventThemes[themeKey].removeButtonStyles();
+        }
+    });
+    if (blurOverlay) blurOverlay.remove();
+    
     currentBackgroundMode = color;
+    
     if (color === 'automatico') {
         updateAutomaticBackground();
+        document.body.style.backgroundImage = 'none';
+        document.body.style.backgroundSize = '';
+        document.body.style.backgroundPosition = '';
+        document.body.style.backgroundRepeat = '';
+        if (clock) clock.style.color = '#1a1a1a';
+        if (date) date.style.color = '#666';
+    } else if (eventTheme) {
+        // Tema a evento (modulare)
+        document.body.style.backgroundColor = '';
+        applyEventThemeBackground(eventTheme);
+        const pill = document.getElementById('status-pill');
+        if (pill) pill.style.backgroundColor = 'white';
+        if (clock) clock.style.color = eventTheme.clockColor;
+        if (date) date.style.color = eventTheme.dateColor;
+        createEventBlurOverlay();
+        if (eventTheme.applyButtonStyles) {
+            eventTheme.applyButtonStyles();
+        }
     } else {
+        // Sfondo colorato normale
         document.body.style.backgroundColor = color;
+        document.body.style.backgroundImage = 'none';
+        document.body.style.backgroundSize = '';
+        document.body.style.backgroundPosition = '';
+        document.body.style.backgroundRepeat = '';
         const pill = document.getElementById('status-pill');
         if (pill) pill.style.backgroundColor = color === '#ffffff' ? '#f8f9fa' : 'white';
+        if (clock) clock.style.color = '#1a1a1a';
+        if (date) date.style.color = '#666';
     }
 }
 
+function createEventBlurOverlay() {
+    let blurOverlay = document.getElementById('event-blur-overlay');
+    if (blurOverlay) return; // Già esistente
+    
+    blurOverlay = document.createElement('div');
+    blurOverlay.id = 'event-blur-overlay';
+    document.body.appendChild(blurOverlay);
+}
+
+function applyEventThemeBackground(eventTheme) {
+    const isMobile = window.innerWidth <= 768;
+    const imageUrl = isMobile ? eventTheme.mobileImage : eventTheme.desktopImage;
+    
+    document.body.style.backgroundImage = `url(${imageUrl})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundPosition = 'center center';
+    document.body.style.backgroundRepeat = 'no-repeat';
+    document.body.style.backgroundAttachment = 'fixed';
+}
+
+window.addEventListener('resize', function() {
+    const eventTheme = eventThemes[currentBackgroundMode];
+    if (eventTheme) {
+        applyEventThemeBackground(eventTheme);
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
+    // Precarica immagini per tutti i temi a evento
+    Object.keys(eventThemes).forEach(themeKey => {
+        const theme = eventThemes[themeKey];
+        if (theme.desktopImage) {
+            const imgDesktop = new Image();
+            imgDesktop.src = theme.desktopImage;
+        }
+        if (theme.mobileImage) {
+            const imgMobile = new Image();
+            imgMobile.src = theme.mobileImage;
+        }
+    });
+    
     const overlay = document.getElementById('overlay');
     const githubIcon = document.getElementById('githubIcon');
     const backIcon = document.getElementById('backIcon');
@@ -440,8 +750,34 @@ document.addEventListener('DOMContentLoaded', function() {
     if (forceSyncBtn) forceSyncBtn.addEventListener('click', () => { closeModal(settingsModal); syncTimeWithServer(); });
     
     // Gestione Toggles
-    if (showOffsetToggle) showOffsetToggle.addEventListener('change', (e) => localStorage.setItem('showOffset', e.target.checked));
-    if (showScheduleToggle) showScheduleToggle.addEventListener('change', (e) => localStorage.setItem('showSchedule', e.target.checked));
+    if (showOffsetToggle) {
+        showOffsetToggle.addEventListener('change', (e) => {
+            localStorage.setItem('showOffset', e.target.checked);
+            // Se siamo in modalità natalizia, aggiorna il colore del toggle
+            if (currentBackgroundMode === 'natale' && eventThemes.natale) {
+                const toggle = e.target.nextElementSibling;
+                if (toggle && e.target.checked) {
+                    toggle.style.backgroundColor = '#dc2626';
+                } else if (toggle) {
+                    toggle.style.backgroundColor = '#ccc';
+                }
+            }
+        });
+    }
+    if (showScheduleToggle) {
+        showScheduleToggle.addEventListener('change', (e) => {
+            localStorage.setItem('showSchedule', e.target.checked);
+            // Se siamo in modalità natalizia, aggiorna il colore del toggle
+            if (currentBackgroundMode === 'natale' && eventThemes.natale) {
+                const toggle = e.target.nextElementSibling;
+                if (toggle && e.target.checked) {
+                    toggle.style.backgroundColor = '#dc2626';
+                } else if (toggle) {
+                    toggle.style.backgroundColor = '#ccc';
+                }
+            }
+        });
+    }
     
     function applyFont(font, weight = '400') {
         const clock = document.querySelector('.clock');
