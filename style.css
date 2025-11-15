@@ -456,8 +456,6 @@ button:hover {
 .schedule-table {
     width: 100%;
     border-collapse: collapse;
-    border-radius: 10px;
-    overflow: hidden;
 }
 
 .schedule-table th, .schedule-table td {
