@@ -130,7 +130,8 @@ body {
     justify-content: center;
     cursor: pointer;
     color: white;
-    transition: transform 0.2s;
+    transition: transform 0.2s, background-color 0.3s ease, color 0.3s ease;
+    z-index: 10;
 }
 
 .icon-button:hover {
@@ -379,6 +380,7 @@ button:hover {
     align-items: center;
     justify-content: center;
     max-width: 90%;
+    z-index: 10;
     
     /* Transizione fluida per larghezza e opacità */
     transition: width 0.4s ease-in-out, opacity 0.4s ease;
@@ -496,6 +498,45 @@ button:hover {
     .schedule-table th, .schedule-table td {
         padding: 5px;
     }
+}
+
+/* Event theme blur overlay (modulare per futuri eventi) */
+#event-blur-overlay {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 180px;
+    pointer-events: none;
+    z-index: 0;
+    backdrop-filter: blur(35px);
+    -webkit-backdrop-filter: blur(35px);
+    background: linear-gradient(to top, 
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0.15) 20%,
+        rgba(255, 255, 255, 0.1) 40%,
+        rgba(255, 255, 255, 0.05) 60%,
+        rgba(255, 255, 255, 0.02) 80%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    mask-image: linear-gradient(to top, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.95) 10%,
+        rgba(0, 0, 0, 0.85) 25%,
+        rgba(0, 0, 0, 0.7) 45%,
+        rgba(0, 0, 0, 0.5) 65%,
+        rgba(0, 0, 0, 0.3) 80%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    -webkit-mask-image: linear-gradient(to top, 
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 0.95) 10%,
+        rgba(0, 0, 0, 0.85) 25%,
+        rgba(0, 0, 0, 0.7) 45%,
+        rgba(0, 0, 0, 0.5) 65%,
+        rgba(0, 0, 0, 0.3) 80%,
+        rgba(0, 0, 0, 0) 100%
+    );
 }
 
 /* Desktop and tablet adjustments */
