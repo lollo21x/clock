@@ -12,7 +12,7 @@ const eventThemes = {
         mobileImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-mobile_mrhqra.png',
         clockColor: '#ffffff',
         dateColor: '#ffffff',
-        applyButtonStyles: function() {
+        applyButtonStyles: function () {
             // Tutti i pulsanti: sfondo bianco, icona rossa
             const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon'];
             buttons.forEach(btnId => {
@@ -28,7 +28,7 @@ const eventThemes = {
                 githubBtn.style.backgroundColor = '#dc2626';
                 githubBtn.style.color = '#ffffff';
             }
-            
+
             // Cambia tutti i verdi in rossi nella tabella orario
             const scheduleTable = document.getElementById('scheduleTable');
             if (scheduleTable) {
@@ -51,20 +51,20 @@ const eventThemes = {
                     }
                 });
             }
-            
+
             // Cambia tutti i verdi in rossi nei pulsanti (già fatto sopra, ma assicuriamoci)
             // Cambia anche il colore del pulsante "Salva" nelle impostazioni
             const closeSettingsBtn = document.getElementById('closeSettingsModal');
             if (closeSettingsBtn) {
                 closeSettingsBtn.style.backgroundColor = '#dc2626';
             }
-            
+
             // Cambia il colore del toggle quando è attivo
             const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
             toggles.forEach(toggle => {
                 toggle.style.backgroundColor = '#dc2626';
             });
-            
+
             // Cambia pulsanti "Chiudi"
             const closeInfoBtn = document.getElementById('closeInfoModal');
             if (closeInfoBtn) {
@@ -74,7 +74,7 @@ const eventThemes = {
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#dc2626';
             }
-            
+
             // Cambia colore testo sincronizzazione (verde → rosso)
             const syncStatus = document.getElementById('sync-status');
             if (syncStatus) {
@@ -88,7 +88,7 @@ const eventThemes = {
                     syncStatus.style.color = '#dc2626';
                 }
             }
-            
+
             // Cambia animazione sincronizzazione (cerchi verdi → rossi)
             const pulseInner = document.querySelector('.pulse-inner');
             if (pulseInner) {
@@ -98,7 +98,7 @@ const eventThemes = {
             if (pulseFixed) {
                 pulseFixed.style.backgroundColor = '#f87171'; // Rosso più chiaro
             }
-            
+
             // Cambia barra di progresso materia se è verde
             const materiaProgress = document.getElementById('materia-progress');
             if (materiaProgress) {
@@ -107,17 +107,17 @@ const eventThemes = {
                     materiaProgress.style.backgroundColor = '#dc2626';
                 }
             }
-            
+
             // Cambia selezione testo (verde → rosso)
             const style = document.createElement('style');
             style.id = 'christmas-selection-style';
             style.textContent = '::selection { background-color: #dc2626 !important; } ::-moz-selection { background-color: #dc2626 !important; }';
             document.head.appendChild(style);
-            
+
             // Aggiungi classe al body per tema natalizio
             document.body.classList.add('christmas-theme');
         },
-        removeButtonStyles: function() {
+        removeButtonStyles: function () {
             // Ripristina stili originali
             const backIcon = document.getElementById('backIcon');
             if (backIcon) {
@@ -144,7 +144,7 @@ const eventThemes = {
                 githubIcon.style.backgroundColor = '#333';
                 githubIcon.style.color = 'white';
             }
-            
+
             // Ripristina colori originali nella tabella orario
             const scheduleTable = document.getElementById('scheduleTable');
             if (scheduleTable) {
@@ -163,19 +163,19 @@ const eventThemes = {
                     }
                 });
             }
-            
+
             // Ripristina colore pulsante "Salva"
             const closeSettingsBtn = document.getElementById('closeSettingsModal');
             if (closeSettingsBtn) {
                 closeSettingsBtn.style.backgroundColor = '#1b912b';
             }
-            
+
             // Ripristina colore toggle
-            const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
+            const toggles = document.querySelectorAll('.toggle-slider');
             toggles.forEach(toggle => {
-                toggle.style.backgroundColor = '#1b912b';
+                toggle.style.backgroundColor = '';
             });
-            
+
             // Ripristina pulsanti "Chiudi"
             const closeInfoBtn = document.getElementById('closeInfoModal');
             if (closeInfoBtn) {
@@ -185,14 +185,14 @@ const eventThemes = {
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#1b912b';
             }
-            
+
             // Ripristina colore testo sincronizzazione
             const syncStatus = document.getElementById('sync-status');
             if (syncStatus && syncStatus.dataset.originalColor) {
                 syncStatus.style.color = syncStatus.dataset.originalColor;
                 delete syncStatus.dataset.originalColor;
             }
-            
+
             // Ripristina animazione sincronizzazione (cerchi verdi)
             const pulseInner = document.querySelector('.pulse-inner');
             if (pulseInner) {
@@ -202,7 +202,7 @@ const eventThemes = {
             if (pulseFixed) {
                 pulseFixed.style.backgroundColor = 'rgb(74, 222, 128)'; // Verde originale
             }
-            
+
             // Ripristina barra di progresso materia se era stata cambiata
             const materiaProgress = document.getElementById('materia-progress');
             if (materiaProgress) {
@@ -212,15 +212,214 @@ const eventThemes = {
                     materiaProgress.style.backgroundColor = '';
                 }
             }
-            
+
             // Rimuovi stile selezione testo
             const selectionStyle = document.getElementById('christmas-selection-style');
             if (selectionStyle) {
                 selectionStyle.remove();
             }
-            
+
             // Rimuovi classe dal body
             document.body.classList.remove('christmas-theme');
+        }
+    },
+    stranger_things: {
+        name: 'stranger_things',
+        desktopImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763583944/st-wallpaper_jm6eya.jpg',
+        mobileImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763583944/st-wallpaper_jm6eya.jpg',
+        clockColor: '#ffffff',
+        dateColor: '#ffffff',
+        applyButtonStyles: function () {
+            // Tutti i pulsanti: sfondo bianco, icona maroon
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.backgroundColor = '#ffffff';
+                    btn.style.color = '#800000';
+                }
+            });
+            // GitHub: sfondo maroon, icona bianca (invertito)
+            const githubBtn = document.getElementById('githubIcon');
+            if (githubBtn) {
+                githubBtn.style.backgroundColor = '#800000';
+                githubBtn.style.color = '#ffffff';
+            }
+
+            // Cambia tutti i verdi in maroon nella tabella orario
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    const bgColor = th.style.backgroundColor || window.getComputedStyle(th).backgroundColor;
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)' || bgColor === '' || !th.style.backgroundColor) {
+                        th.style.backgroundColor = '#800000';
+                    }
+                });
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                        td.style.backgroundColor = '#800000';
+                        td.style.color = 'white';
+                    }
+                });
+            }
+
+            // Cambia il colore del pulsante "Salva" nelle impostazioni
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#800000';
+            }
+
+            // Cambia il colore del toggle quando è attivo
+            const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '#800000';
+            });
+
+            // Cambia pulsanti "Chiudi"
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#800000';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#800000';
+            }
+
+            // Cambia colore testo sincronizzazione
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus) {
+                if (!syncStatus.dataset.originalColor) {
+                    const currentColor = syncStatus.style.color || window.getComputedStyle(syncStatus).color;
+                    syncStatus.dataset.originalColor = currentColor;
+                }
+                if (syncStatus.style.color !== '#ff6b6b' && syncStatus.style.color !== 'rgb(255, 107, 107)') {
+                    syncStatus.style.color = '#800000';
+                }
+            }
+
+            // Cambia animazione sincronizzazione
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = '#800000';
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = '#a52a2a'; // Maroon più chiaro
+            }
+
+            // Cambia barra di progresso materia se è verde
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                    materiaProgress.style.backgroundColor = '#800000';
+                }
+            }
+
+            // Cambia selezione testo
+            const style = document.createElement('style');
+            style.id = 'stranger-things-selection-style';
+            style.textContent = '::selection { background-color: #800000 !important; } ::-moz-selection { background-color: #800000 !important; }';
+            document.head.appendChild(style);
+
+            // Aggiungi classe al body
+            document.body.classList.add('stranger-things-theme');
+        },
+        removeButtonStyles: function () {
+            // Ripristina stili originali (copia da natale.removeButtonStyles)
+            const backIcon = document.getElementById('backIcon');
+            if (backIcon) {
+                backIcon.style.backgroundColor = '#1b912b';
+                backIcon.style.color = 'white';
+            }
+            const scheduleIcon = document.getElementById('scheduleIcon');
+            if (scheduleIcon) {
+                scheduleIcon.style.backgroundColor = '#1b912b';
+                scheduleIcon.style.color = 'white';
+            }
+            const settingsIcon = document.getElementById('settingsIcon');
+            if (settingsIcon) {
+                settingsIcon.style.backgroundColor = '#1b912b';
+                settingsIcon.style.color = 'white';
+            }
+            const infoIcon = document.getElementById('infoIcon');
+            if (infoIcon) {
+                infoIcon.style.backgroundColor = '#1b912b';
+                infoIcon.style.color = 'white';
+            }
+            const githubIcon = document.getElementById('githubIcon');
+            if (githubIcon) {
+                githubIcon.style.backgroundColor = '#333';
+                githubIcon.style.color = 'white';
+            }
+
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    th.style.backgroundColor = '#1b912b';
+                });
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    if (bgColor === '#800000' || bgColor === 'rgb(128, 0, 0)') {
+                        td.style.backgroundColor = '';
+                        td.style.color = '';
+                    }
+                });
+            }
+
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#1b912b';
+            }
+
+            const toggles = document.querySelectorAll('.toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '';
+            });
+
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#1b912b';
+            }
+
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus && syncStatus.dataset.originalColor) {
+                syncStatus.style.color = syncStatus.dataset.originalColor;
+                delete syncStatus.dataset.originalColor;
+            }
+
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = 'rgb(74, 222, 128)';
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = 'rgb(74, 222, 128)';
+            }
+
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#800000' || bgColor === 'rgb(128, 0, 0)') {
+                    materiaProgress.style.backgroundColor = '';
+                }
+            }
+
+            const selectionStyle = document.getElementById('stranger-things-selection-style');
+            if (selectionStyle) {
+                selectionStyle.remove();
+            }
+
+            document.body.classList.remove('stranger-things-theme');
         }
     }
 };
@@ -328,11 +527,13 @@ function updateScheduleWidget() {
                     const subjectIndex = fasceOrarie.slice(0, i + 1).filter(f => f.nome.startsWith("Ora")).length - 1;
                     materia = (orarioScolastico[day] && orarioScolastico[day][subjectIndex]) ? orarioScolastico[day][subjectIndex] : "Pausa";
                 }
-                
+
                 let color = materiaColori[materia] || "#000000";
-                // Se siamo in modalità natalizia e il colore è verde, cambia in rosso
+                // Se siamo in modalità natalizia o stranger things e il colore è verde, cambia
                 if (currentBackgroundMode === 'natale' && (color === '#1b912b' || color === 'rgb(27, 145, 43)')) {
                     color = '#dc2626';
+                } else if (currentBackgroundMode === 'stranger_things' && (color === '#1b912b' || color === 'rgb(27, 145, 43)')) {
+                    color = '#800000';
                 }
                 document.getElementById('materia-nome').textContent = materia;
                 document.getElementById('materia-nome').style.color = color;
@@ -340,7 +541,7 @@ function updateScheduleWidget() {
                 document.getElementById('materia-percentuale').style.color = color;
                 document.getElementById('materia-progress').style.width = `${percentage}%`;
                 document.getElementById('materia-progress').style.backgroundColor = color;
-                
+
                 break;
             }
         }
@@ -429,12 +630,19 @@ function updateSyncStatus(message, isError = false) {
         status.style.opacity = '0';
         setTimeout(() => {
             status.innerHTML = message;
-            // Se siamo in modalità natalizia, usa rosso invece di verde
+            // Se siamo in modalità natalizia o stranger things, usa colore specifico
             const isChristmasTheme = currentBackgroundMode === 'natale';
+            const isStrangerThingsTheme = currentBackgroundMode === 'stranger_things';
             if (isError) {
                 status.style.color = '#ff6b6b';
             } else {
-                status.style.color = isChristmasTheme ? '#dc2626' : '#1b912b';
+                if (isChristmasTheme) {
+                    status.style.color = '#dc2626';
+                } else if (isStrangerThingsTheme) {
+                    status.style.color = '#800000';
+                } else {
+                    status.style.color = '#1b912b';
+                }
             }
             status.style.opacity = '1';
         }, 150);
@@ -493,7 +701,7 @@ function applyBackground(color) {
     const date = document.querySelector('.date');
     let blurOverlay = document.getElementById('event-blur-overlay');
     const eventTheme = eventThemes[color];
-    
+
     // Rimuovi tutti i temi a evento attivi
     Object.keys(eventThemes).forEach(themeKey => {
         if (eventThemes[themeKey].removeButtonStyles) {
@@ -501,9 +709,9 @@ function applyBackground(color) {
         }
     });
     if (blurOverlay) blurOverlay.remove();
-    
+
     currentBackgroundMode = color;
-    
+
     if (color === 'automatico') {
         updateAutomaticBackground();
         document.body.style.backgroundImage = 'none';
@@ -541,7 +749,7 @@ function applyBackground(color) {
 function createEventBlurOverlay() {
     let blurOverlay = document.getElementById('event-blur-overlay');
     if (blurOverlay) return; // Già esistente
-    
+
     blurOverlay = document.createElement('div');
     blurOverlay.id = 'event-blur-overlay';
     document.body.appendChild(blurOverlay);
@@ -550,7 +758,7 @@ function createEventBlurOverlay() {
 function applyEventThemeBackground(eventTheme) {
     const isMobile = window.innerWidth <= 768;
     const imageUrl = isMobile ? eventTheme.mobileImage : eventTheme.desktopImage;
-    
+
     document.body.style.backgroundImage = `url(${imageUrl})`;
     document.body.style.backgroundSize = 'cover';
     document.body.style.backgroundPosition = 'center center';
@@ -558,14 +766,14 @@ function applyEventThemeBackground(eventTheme) {
     document.body.style.backgroundAttachment = 'fixed';
 }
 
-window.addEventListener('resize', function() {
+window.addEventListener('resize', function () {
     const eventTheme = eventThemes[currentBackgroundMode];
     if (eventTheme) {
         applyEventThemeBackground(eventTheme);
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     // Precarica immagini per tutti i temi a evento
     Object.keys(eventThemes).forEach(themeKey => {
         const theme = eventThemes[themeKey];
@@ -578,7 +786,7 @@ document.addEventListener('DOMContentLoaded', function() {
             imgMobile.src = theme.mobileImage;
         }
     });
-    
+
     const overlay = document.getElementById('overlay');
     const githubIcon = document.getElementById('githubIcon');
     const backIcon = document.getElementById('backIcon');
@@ -595,7 +803,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const weightSelect = document.getElementById('weightSelect');
     const backgroundSelect = document.getElementById('backgroundSelect');
     const forceSyncBtn = document.getElementById('forceSync');
-    
+
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
         infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.5';
@@ -665,7 +873,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else {
                 statusPill.classList.remove('sync-view');
             }
-            
+
             currentWidgetIndex = nextWidgetIndex;
 
             // 3. Fai riapparire la pillola (la transizione CSS su larghezza e opacità farà il resto)
@@ -740,7 +948,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     if (fontSelect) {
-        fontSelect.addEventListener('change', function() {
+        fontSelect.addEventListener('change', function () {
             toggleWeightSelect(this.value);
             const weight = this.value === 'Montserrat' ? '400' : weightSelect.value;
             applyFont(this.value, weight);
@@ -748,16 +956,17 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     if (weightSelect) weightSelect.addEventListener('change', () => applyFont(fontSelect.value, weightSelect.value));
     if (forceSyncBtn) forceSyncBtn.addEventListener('click', () => { closeModal(settingsModal); syncTimeWithServer(); });
-    
+
     // Gestione Toggles
     if (showOffsetToggle) {
         showOffsetToggle.addEventListener('change', (e) => {
             localStorage.setItem('showOffset', e.target.checked);
-            // Se siamo in modalità natalizia, aggiorna il colore del toggle
-            if (currentBackgroundMode === 'natale' && eventThemes.natale) {
+            // Se siamo in modalità natalizia o stranger things, aggiorna il colore del toggle
+            if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
                 const toggle = e.target.nextElementSibling;
+                const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
                 if (toggle && e.target.checked) {
-                    toggle.style.backgroundColor = '#dc2626';
+                    toggle.style.backgroundColor = activeColor;
                 } else if (toggle) {
                     toggle.style.backgroundColor = '#ccc';
                 }
@@ -767,18 +976,19 @@ document.addEventListener('DOMContentLoaded', function() {
     if (showScheduleToggle) {
         showScheduleToggle.addEventListener('change', (e) => {
             localStorage.setItem('showSchedule', e.target.checked);
-            // Se siamo in modalità natalizia, aggiorna il colore del toggle
-            if (currentBackgroundMode === 'natale' && eventThemes.natale) {
+            // Se siamo in modalità natalizia o stranger things, aggiorna il colore del toggle
+            if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
                 const toggle = e.target.nextElementSibling;
+                const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
                 if (toggle && e.target.checked) {
-                    toggle.style.backgroundColor = '#dc2626';
+                    toggle.style.backgroundColor = activeColor;
                 } else if (toggle) {
                     toggle.style.backgroundColor = '#ccc';
                 }
             }
         });
     }
-    
+
     function applyFont(font, weight = '400') {
         const clock = document.querySelector('.clock');
         const date = document.querySelector('.date');
@@ -791,7 +1001,7 @@ document.addEventListener('DOMContentLoaded', function() {
     function toggleWeightSelect(font) {
         if (weightSelect) weightSelect.style.display = font === 'Montserrat' ? 'none' : 'block';
     }
-    
+
     // Evidenzia il giorno corrente nella tabella orario
     const currentDay = new Date().getDay(); // 0=dom, 1=lun, ..., 6=sab
     if (currentDay >= 1 && currentDay <= 6) {
@@ -803,7 +1013,7 @@ document.addEventListener('DOMContentLoaded', function() {
     updateClock();
     setInterval(updateClock, 1000);
 
-    setInterval(function() {
+    setInterval(function () {
         if (!isSyncing && lastSyncTime > 0) {
             const timeSinceSync = Math.floor((Date.now() - lastSyncTime) / 1000);
             const showOffset = localStorage.getItem('showOffset') === 'true';
