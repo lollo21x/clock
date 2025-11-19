@@ -8,7 +8,8 @@ body {
     justify-content: center;
     align-items: center;
     font-family: 'Montserrat', sans-serif;
-    overflow: hidden; /* Previene scorrimento */
+    overflow: hidden;
+    /* Previene scorrimento */
     transition: background-color 1s ease;
 }
 
@@ -47,8 +48,8 @@ body {
 }
 
 ::selection {
-      background-color: #1b912b;
-      color: #fff;
+    background-color: #1b912b;
+    color: #fff;
 }
 
 .clock-container {
@@ -113,6 +114,7 @@ body {
         transform: scale(1) rotate(0deg);
         opacity: 1;
     }
+
     100% {
         transform: scale(2.8745) rotate(337.409deg);
         opacity: 0;
@@ -192,7 +194,9 @@ body {
     transition: all 0.25s ease;
 }
 
-#settingsModal, #infoModal, #scheduleModal {
+#settingsModal,
+#infoModal,
+#scheduleModal {
     padding: 30px;
     text-align: left;
 }
@@ -294,11 +298,11 @@ body {
     border-radius: 50%;
 }
 
-input:checked + .toggle-slider {
+input:checked+.toggle-slider {
     background-color: #1b912b;
 }
 
-input:checked + .toggle-slider:before {
+input:checked+.toggle-slider:before {
     transform: translateX(22px);
 }
 
@@ -381,12 +385,12 @@ button:hover {
     justify-content: center;
     max-width: 90%;
     z-index: 10;
-    
+
     /* Transizione fluida per larghezza e opacità */
     transition: width 0.4s ease-in-out, opacity 0.4s ease;
-    
+
     /* Stato di default (stretto, per la barra di progresso) */
-    width: 250px; 
+    width: 250px;
     padding: 0 20px;
 }
 
@@ -396,7 +400,8 @@ button:hover {
 }
 
 #sync-status {
-    white-space: nowrap; /* Fondamentale: impedisce al testo di andare a capo */
+    white-space: nowrap;
+    /* Fondamentale: impedisce al testo di andare a capo */
     text-align: center;
 }
 
@@ -410,14 +415,16 @@ button:hover {
 
 /* Modifica chiave: Rimuoviamo position:absolute per permettere al contenitore di adattarsi */
 .widget-content {
-    display: none; /* Nascosto di default */
+    display: none;
+    /* Nascosto di default */
     width: 100%;
     align-items: center;
     justify-content: center;
 }
 
 .widget-content.active {
-    display: flex; /* Mostrato quando attivo, entra nel flusso del layout */
+    display: flex;
+    /* Mostrato quando attivo, entra nel flusso del layout */
 }
 
 #schedule-widget {
@@ -458,7 +465,8 @@ button:hover {
     border-collapse: collapse;
 }
 
-.schedule-table th, .schedule-table td {
+.schedule-table th,
+.schedule-table td {
     padding: 10px;
     text-align: center;
     border: 1px solid #ddd;
@@ -481,7 +489,11 @@ button:hover {
 
 /* Mobile adjustments */
 @media (max-width: 768px) {
-    #githubIcon, #settingsIcon, #scheduleIcon, #status-pill {
+
+    #githubIcon,
+    #settingsIcon,
+    #scheduleIcon,
+    #status-pill {
         display: none;
     }
 
@@ -493,7 +505,8 @@ button:hover {
         font-size: 0.8rem;
     }
 
-    .schedule-table th, .schedule-table td {
+    .schedule-table th,
+    .schedule-table td {
         padding: 5px;
     }
 }
@@ -504,37 +517,20 @@ button:hover {
     bottom: 0;
     left: 0;
     right: 0;
-    height: 180px;
+    height: 250px;
     pointer-events: none;
     z-index: 0;
-    backdrop-filter: blur(35px);
-    -webkit-backdrop-filter: blur(35px);
-    background: linear-gradient(to top, 
-        rgba(255, 255, 255, 0.2) 0%,
-        rgba(255, 255, 255, 0.15) 20%,
-        rgba(255, 255, 255, 0.1) 40%,
-        rgba(255, 255, 255, 0.05) 60%,
-        rgba(255, 255, 255, 0.02) 80%,
-        rgba(255, 255, 255, 0) 100%
-    );
-    mask-image: linear-gradient(to top, 
-        rgba(0, 0, 0, 1) 0%,
-        rgba(0, 0, 0, 0.95) 10%,
-        rgba(0, 0, 0, 0.85) 25%,
-        rgba(0, 0, 0, 0.7) 45%,
-        rgba(0, 0, 0, 0.5) 65%,
-        rgba(0, 0, 0, 0.3) 80%,
-        rgba(0, 0, 0, 0) 100%
-    );
-    -webkit-mask-image: linear-gradient(to top, 
-        rgba(0, 0, 0, 1) 0%,
-        rgba(0, 0, 0, 0.95) 10%,
-        rgba(0, 0, 0, 0.85) 25%,
-        rgba(0, 0, 0, 0.7) 45%,
-        rgba(0, 0, 0, 0.5) 65%,
-        rgba(0, 0, 0, 0.3) 80%,
-        rgba(0, 0, 0, 0) 100%
-    );
+    backdrop-filter: blur(120px);
+    -webkit-backdrop-filter: blur(120px);
+    background: transparent;
+    mask-image: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) 40%,
+            rgba(0, 0, 0, 0) 100%);
+    -webkit-mask-image: linear-gradient(to top,
+            rgba(0, 0, 0, 1) 0%,
+            rgba(0, 0, 0, 1) 40%,
+            rgba(0, 0, 0, 0) 100%);
 }
 
 /* Desktop and tablet adjustments */
@@ -550,7 +546,8 @@ button:hover {
         font-size: 1rem;
     }
 
-    .schedule-table th, .schedule-table td {
+    .schedule-table th,
+    .schedule-table td {
         padding: 15px;
     }
 }
