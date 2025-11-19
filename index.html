@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Clock" />
     <link rel="manifest" href="icons/site.webmanifest" />
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3.0">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
@@ -35,14 +35,32 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
     <!-- Preload Christmas theme images -->
     <link rel="preload" as="image"
-        href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-desktop_wel7lu.png">
+        href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-desktop_wel7lu.png"
+        media="(min-width: 769px)">
     <link rel="preload" as="image"
-        href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-mobile_mrhqra.png">
+        href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-mobile_mrhqra.png"
+        media="(max-width: 768px)">
     <link rel="preload" as="image"
         href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763583944/st-wallpaper_jm6eya.jpg">
 </head>
 
 <body>
+    <script>
+        (function () {
+            try {
+                const savedBackground = localStorage.getItem('clockBackground');
+                if (savedBackground === 'stranger_things') {
+                    document.body.style.backgroundColor = '#000000'; // Dark background for Stranger Things
+                } else if (savedBackground === 'natale') {
+                    document.body.style.backgroundColor = '#c0392b'; // Red background for Christmas
+                } else if (savedBackground && savedBackground !== 'automatico') {
+                    document.body.style.backgroundColor = savedBackground;
+                }
+            } catch (e) {
+                console.error('Error applying initial background:', e);
+            }
+        })();
+    </script>
     <div class="clock-container">
         <div class="clock">
             <span id="hours">00</span><span class="separator">:</span><span id="minutes">00</span><span
@@ -207,7 +225,7 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=3.0"></script>
 </body>
 
 </html>
