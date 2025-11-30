@@ -14,7 +14,7 @@ const eventThemes = {
         dateColor: '#ffffff',
         applyButtonStyles: function () {
             // Tutti i pulsanti: sfondo bianco, icona rossa
-            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon'];
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon'];
             buttons.forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
@@ -73,6 +73,10 @@ const eventThemes = {
             const closeScheduleBtn = document.getElementById('closeScheduleModal');
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#dc2626';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#dc2626';
             }
 
             // Cambia colore testo sincronizzazione (verde → rosso)
@@ -139,6 +143,11 @@ const eventThemes = {
                 infoIcon.style.backgroundColor = '#1b912b';
                 infoIcon.style.color = 'white';
             }
+            const calendarIcon = document.getElementById('calendarIcon');
+            if (calendarIcon) {
+                calendarIcon.style.backgroundColor = '#1b912b';
+                calendarIcon.style.color = 'white';
+            }
             const githubIcon = document.getElementById('githubIcon');
             if (githubIcon) {
                 githubIcon.style.backgroundColor = '#333';
@@ -184,6 +193,10 @@ const eventThemes = {
             const closeScheduleBtn = document.getElementById('closeScheduleModal');
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#1b912b';
             }
 
             // Ripristina colore testo sincronizzazione
@@ -231,7 +244,7 @@ const eventThemes = {
         dateColor: '#ffffff',
         applyButtonStyles: function () {
             // Tutti i pulsanti: sfondo bianco, icona maroon
-            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon'];
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon'];
             buttons.forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
@@ -286,6 +299,10 @@ const eventThemes = {
             const closeScheduleBtn = document.getElementById('closeScheduleModal');
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#800000';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#800000';
             }
 
             // Cambia colore testo sincronizzazione
@@ -350,6 +367,11 @@ const eventThemes = {
                 infoIcon.style.backgroundColor = '#1b912b';
                 infoIcon.style.color = 'white';
             }
+            const calendarIcon = document.getElementById('calendarIcon');
+            if (calendarIcon) {
+                calendarIcon.style.backgroundColor = '#1b912b';
+                calendarIcon.style.color = 'white';
+            }
             const githubIcon = document.getElementById('githubIcon');
             if (githubIcon) {
                 githubIcon.style.backgroundColor = '#333';
@@ -389,6 +411,10 @@ const eventThemes = {
             const closeScheduleBtn = document.getElementById('closeScheduleModal');
             if (closeScheduleBtn) {
                 closeScheduleBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#1b912b';
             }
 
             const syncStatus = document.getElementById('sync-status');
@@ -798,6 +824,110 @@ document.addEventListener('DOMContentLoaded', function () {
     const scheduleModal = document.getElementById('scheduleModal');
     const closeSettingsModal = document.getElementById('closeSettingsModal');
     const closeInfoModal = document.getElementById('closeInfoModal');
+
+    // --- CALENDAR MODAL LOGIC ---
+    const calendarIcon = document.getElementById('calendarIcon');
+    const calendarModal = document.getElementById('calendarModal');
+    const closeCalendarModal = document.getElementById('closeCalendarModal');
+
+    if (calendarIcon && calendarModal) {
+        calendarIcon.addEventListener('click', () => {
+            updateAdventCalendar();
+            openModal(calendarModal);
+        });
+    }
+
+    if (closeCalendarModal) {
+        closeCalendarModal.addEventListener('click', () => {
+            closeModal(calendarModal);
+        });
+    }
+
+    function updateAdventCalendar() {
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth(); // 0-11
+        const currentDate = now.getDate();
+
+        // Countdown to Christmas (Dec 25 00:00)
+        // If current date is after Dec 25, target next year? 
+        // Or just show 0 if it's Dec 25?
+        // User says "giorni rimanenti a Natale, il 25 dicembre a 00:00"
+
+        let targetYear = currentYear;
+        if (currentMonth === 11 && currentDate > 25) {
+            targetYear++;
+        }
+
+        const christmasDate = new Date(targetYear, 11, 25, 0, 0, 0);
+        const diffTime = christmasDate - now;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        const daysRemainingEl = document.getElementById('daysRemaining');
+        if (daysRemainingEl) {
+            daysRemainingEl.textContent = diffDays > 0 ? diffDays : 0;
+        }
+
+        // Render Calendar Grid
+        const grid = document.getElementById('adventGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        // December has 31 days
+        // We want to render 1 to 31
+        // Logic:
+        // 1-25: 
+        //    If date < current (and in Dec): Red
+        //    If date == current (and in Dec): Red
+        //    If date > current: White
+        // 26-31: Gray
+
+        // NOTE: Since we are in Nov 2025, strictly speaking, NO days are passed.
+        // But if we are testing, we might want to see it.
+        // I will implement strict logic:
+        // If month < 11 (Nov), all white (future).
+        // If month == 11 (Dec), check dates.
+
+        const isDecember = currentMonth === 11;
+
+        for (let i = 1; i <= 31; i++) {
+            const dayEl = document.createElement('div');
+            dayEl.classList.add('calendar-day');
+            dayEl.textContent = i;
+
+            if (i > 25) {
+                dayEl.classList.add('future-month'); // Grayed out
+            } else {
+                // Days 1-25
+                if (isDecember && currentDate >= i) {
+                    dayEl.classList.add('active'); // Red
+                } else {
+                    // Default white
+                }
+            }
+
+            grid.appendChild(dayEl);
+        }
+
+        // Snow Animation
+        const snowContainer = document.querySelector('.snow-container');
+        if (snowContainer && snowContainer.children.length === 0) {
+            const snowflakeCount = 20;
+            for (let i = 0; i < snowflakeCount; i++) {
+                const snowflake = document.createElement('div');
+                snowflake.classList.add('snowflake');
+                snowflake.textContent = '❄';
+                snowflake.style.left = Math.random() * 100 + '%';
+                const duration = Math.random() * 3 + 2; // 2-5s
+                snowflake.style.animationDuration = duration + 's';
+                // Negative delay to start mid-animation
+                snowflake.style.animationDelay = -Math.random() * duration + 's';
+                snowflake.style.fontSize = Math.random() * 10 + 10 + 'px'; // 10-20px
+                snowflake.style.opacity = Math.random();
+                snowContainer.appendChild(snowflake);
+            }
+        }
+    }
     const closeScheduleModal = document.getElementById('closeScheduleModal');
     const fontSelect = document.getElementById('fontSelect');
     const weightSelect = document.getElementById('weightSelect');
@@ -806,7 +936,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v2.5';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v3.1';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub4d.lollo.dpdns.org');
@@ -945,6 +1075,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (settingsModal.style.display === 'block') closeModal(settingsModal);
         else if (infoModal.style.display === 'block') closeModal(infoModal);
         else if (scheduleModal.style.display === 'block') closeModal(scheduleModal);
+        else if (calendarModal && calendarModal.style.display === 'block') closeModal(calendarModal);
     });
 
     if (fontSelect) {
