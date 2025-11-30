@@ -141,8 +141,13 @@ body {
 }
 
 #githubIcon {
-    right: 200px;
+    right: 260px;
     background-color: #333;
+}
+
+#calendarIcon {
+    right: 200px;
+    background-color: #1b912b;
 }
 
 #backIcon {
@@ -197,12 +202,12 @@ body {
 #settingsModal,
 #infoModal,
 #scheduleModal {
-    padding: 30px;
+    padding: 20px;
     text-align: left;
 }
 
 .settings-content {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
 }
 
 .settings-section {
@@ -323,7 +328,13 @@ input:checked+.toggle-slider:before {
     gap: 10px;
     margin-top: 20px;
     padding-top: 10px;
-    border-top: 1px solid #eee;
+}
+
+#settingsModal .modal-footer,
+#scheduleModal .modal-footer,
+#infoModal .modal-footer {
+    margin: 10px -20px -20px -20px;
+    padding: 15px;
 }
 
 .modal-footer button {
@@ -346,7 +357,7 @@ input:checked+.toggle-slider:before {
     gap: 10px;
     margin-top: 20px;
     padding-top: 10px;
-    border-top: 1px solid #eee;
+
 }
 
 button {
@@ -457,19 +468,25 @@ button:hover {
 }
 
 .schedule-table-container {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
+    background-color: #f4f4f4;
+    /* Grigio chiarissimo */
+    padding: 15px;
+    border-radius: 20px;
 }
 
 .schedule-table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 8px;
 }
 
 .schedule-table th,
 .schedule-table td {
     padding: 10px;
     text-align: center;
-    border: 1px solid #ddd;
+    border: none;
+    border-radius: 12px;
 }
 
 .schedule-table th {
@@ -503,11 +520,13 @@ button:hover {
 
     .schedule-table {
         font-size: 0.8rem;
+        border-spacing: 4px;
     }
 
     .schedule-table th,
     .schedule-table td {
         padding: 5px;
+        border-radius: 8px;
     }
 }
 
@@ -550,4 +569,155 @@ button:hover {
     .schedule-table td {
         padding: 15px;
     }
+}
+
+/* --- CALENDAR MODAL STYLES --- */
+#calendarModal {
+    padding: 0;
+    /* Reset padding for custom header */
+    overflow: hidden;
+    /* Ensure rounded corners clip content */
+    display: none;
+    flex-direction: column;
+}
+
+.calendar-header-wrapper {
+    background: linear-gradient(to top right, #c0392b, #ef5350);
+    /* Medium dark red to lighter red */
+    padding: 30px 20px;
+    text-align: center;
+    color: white;
+    border-top-left-radius: 20px;
+    /* Concentric with modal */
+    border-top-right-radius: 20px;
+    position: relative;
+    /* For snow container */
+    overflow: hidden;
+    /* Keep snow inside */
+}
+
+.snow-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.snowflake {
+    position: absolute;
+    top: -10px;
+    color: white;
+    font-size: 1em;
+    font-family: Arial, sans-serif;
+    user-select: none;
+    z-index: 1000;
+    animation-name: fall;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+}
+
+@keyframes fall {
+    0% {
+        transform: translateY(-10px) translateX(0px);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: translateY(200px) translateX(20px);
+        /* Adjust based on header height */
+        opacity: 0;
+    }
+}
+
+.calendar-header-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 2;
+    /* Above snow */
+}
+
+.days-count {
+    font-size: 3rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.countdown-label {
+    font-size: 1.2rem;
+    margin-top: 5px;
+    opacity: 0.9;
+    text-shadow: none;
+}
+
+.calendar-body {
+    padding: 10px 20px;
+    overflow-y: auto;
+    max-height: 60vh;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.calendar-day {
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    color: black;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    /* Slightly rounded */
+    font-weight: bold;
+    font-size: 1.1rem;
+    transition: transform 0.2s ease;
+}
+
+.calendar-day.active {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.3);
+}
+
+.calendar-day.future-month {
+    background-color: #f0f0f0;
+    color: #ccc;
+    border-color: #f0f0f0;
+}
+
+/* Mobile adjustments for calendar */
+@media (max-width: 768px) {
+    #calendarIcon {
+        display: none;
+    }
+
+    .calendar-grid {
+        gap: 5px;
+    }
+
+    .calendar-day {
+        font-size: 0.9rem;
+        border-radius: 8px;
+    }
+
+    .days-count {
+        font-size: 2.5rem;
+    }
+}
+
+/* Fix spacing for calendar modal footer */
+#calendarModal .modal-footer {
+    padding: 10px;
+    margin-top: 0;
 }
