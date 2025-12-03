@@ -1,8 +1,33 @@
+// --- FIREBASE CONFIGURATION ---
+const firebaseConfig = {
+    apiKey: "AIzaSyC4BeTTqlO-OC6FMDZgwCRtWf5bd87VAd8",
+    authDomain: "clock-4d.firebaseapp.com",
+    projectId: "clock-4d",
+    storageBucket: "clock-4d.firebasestorage.app",
+    messagingSenderId: "196886932100",
+    appId: "1:196886932100:web:e0a6552a5295ffd7f3f0d1",
+    measurementId: "G-F971VVG20Y"
+};
+
+// Initialize Firebase
+let db;
+try {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    console.log('Firebase initialized successfully');
+} catch (error) {
+    console.error('Error initializing Firebase:', error);
+}
+
 // Variabili globali per gestire l'offset e la sincronizzazione
 let serverTimeOffset = 0;
 let lastSyncTime = 0;
 let isSyncing = false;
 let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
+
+// Event management variables
+let currentEditingEventId = null;
+let selectedVolunteers = [];
 
 // --- GESTIONE TEMI A EVENTO (MODULARE PER FUTURI EVENTI) ---
 const eventThemes = {
@@ -523,6 +548,7 @@ function updateClock() {
     if (currentTime - lastSyncTime > 900000 && !isSyncing) {
         syncTimeWithServer();
     }
+    checkExpiredEvents();
 }
 
 function updateScheduleWidget() {
@@ -738,6 +764,15 @@ function applyBackground(color) {
 
     currentBackgroundMode = color;
 
+    // Set theme color CSS variable
+    let themeColor = '#1b912b'; // Default Green
+    if (color === 'natale') {
+        themeColor = '#dc2626'; // Christmas Red
+    } else if (color === 'stranger_things') {
+        themeColor = '#800000'; // Stranger Things Dark Red
+    }
+    document.documentElement.style.setProperty('--theme-color', themeColor);
+
     if (color === 'automatico') {
         updateAutomaticBackground();
         document.body.style.backgroundImage = 'none';
@@ -798,6 +833,415 @@ window.addEventListener('resize', function () {
         applyEventThemeBackground(eventTheme);
     }
 });
+
+// --- FIREBASE EVENT MANAGEMENT FUNCTIONS ---
+
+// Validate passcode based on current time
+function validatePasscode(input) {
+    const now = new Date();
+    let hours = now.getHours();
+    let minutes = now.getMinutes();
+
+    // Calculate passcode: (HH - 4) and (MM + 4)
+    // Subtract 4 from hours
+    hours = hours - 4;
+
+    // Handle negative hours (previous day)
+    if (hours < 0) {
+        hours = hours + 24;
+    }
+
+    // Add 4 to minutes (with modulo 60, but don't affect hours)
+    minutes = (minutes + 4) % 60;
+
+    // Format as 4-digit string with leading zeros
+    const passcode = String(hours).padStart(2, '0') + String(minutes).padStart(2, '0');
+
+    console.log(`Current time: ${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}, Expected passcode: ${passcode}, Input: ${input}`);
+
+    return input === passcode;
+}
+
+// Save event to Firebase
+async function saveEvent(eventData) {
+    try {
+        if (currentEditingEventId) {
+            // Update existing event
+            await db.collection('events').doc(currentEditingEventId).update({
+                ...eventData,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('Event updated successfully');
+        } else {
+            // Create new event
+            await db.collection('events').add({
+                ...eventData,
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            console.log('Event created successfully');
+        }
+        return true;
+    } catch (error) {
+        console.error('Error saving event:', error);
+        return false;
+    }
+}
+
+// Delete event from Firebase
+async function deleteEvent(eventId) {
+    try {
+        await db.collection('events').doc(eventId).delete();
+        console.log('Event deleted successfully');
+        return true;
+    } catch (error) {
+        console.error('Error deleting event:', error);
+        return false;
+    }
+}
+
+// Get upcoming events within specified days
+async function getUpcomingEvents(daysAhead = 7) {
+    try {
+        const now = new Date();
+        const todayStr = formatDateForStorage(now);
+
+        const futureDate = new Date();
+        futureDate.setDate(futureDate.getDate() + daysAhead);
+        const futureDateStr = formatDateForStorage(futureDate);
+
+        console.log(`Fetching events from ${todayStr} to ${futureDateStr}`);
+
+        const snapshot = await db.collection('events')
+            .where('date', '>=', todayStr)
+            .where('date', '<=', futureDateStr)
+            .get();
+
+        const events = [];
+        snapshot.forEach(doc => {
+            events.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        // Sort by date and time
+        events.sort((a, b) => {
+            if (a.date !== b.date) {
+                return a.date.localeCompare(b.date);
+            }
+            return a.timeSlot.localeCompare(b.timeSlot);
+        });
+
+        console.log(`Found ${events.length} events:`, events);
+        return events;
+    } catch (error) {
+        console.error('Error getting events:', error);
+        return [];
+    }
+}
+
+// Get all events (for management view)
+async function getAllEvents() {
+    try {
+        const now = new Date();
+        const todayStr = formatDateForStorage(now);
+
+        const snapshot = await db.collection('events')
+            .where('date', '>=', todayStr)
+            .get();
+
+        const events = [];
+        snapshot.forEach(doc => {
+            events.push({
+                id: doc.id,
+                ...doc.data()
+            });
+        });
+
+        // Sort by date and time
+        events.sort((a, b) => {
+            if (a.date !== b.date) {
+                return a.date.localeCompare(b.date);
+            }
+            return a.timeSlot.localeCompare(b.timeSlot);
+        });
+
+        return events;
+    } catch (error) {
+        console.error('Error getting all events:', error);
+        return [];
+    }
+}
+
+// Check for expired events and delete them immediately
+async function checkExpiredEvents() {
+    const now = new Date();
+    const todayStr = formatDateForStorage(now);
+    const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+    try {
+        // Get events for today
+        const snapshot = await db.collection('events')
+            .where('date', '==', todayStr)
+            .get();
+
+        if (snapshot.empty) return;
+
+        const batch = db.batch();
+        let hasDeletions = false;
+
+        snapshot.docs.forEach(doc => {
+            const event = doc.data();
+            const timeSlot = event.timeSlot;
+            if (timeSlot) {
+                const endTime = parseTimeSlotEndTime(timeSlot);
+                if (endTime && currentMinutes > endTime) {
+                    console.log(`Event ${event.subject} expired at ${Math.floor(endTime / 60)}:${endTime % 60}. Deleting...`);
+                    batch.delete(doc.ref);
+                    hasDeletions = true;
+                }
+            }
+        });
+
+        if (hasDeletions) {
+            await batch.commit();
+            console.log('Expired events deleted.');
+            // Update UI if needed
+            updateEventsWidget();
+        }
+    } catch (error) {
+        console.error('Error checking expired events:', error);
+    }
+}
+
+function parseTimeSlotEndTime(timeSlot) {
+    try {
+        // Format: "8:15-9:15"
+        const parts = timeSlot.split('-');
+        if (parts.length !== 2) return null;
+
+        const endPart = parts[1].trim();
+        const [hours, minutes] = endPart.split(':').map(Number);
+
+        return hours * 60 + minutes;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Cleanup old events (before today)
+async function cleanupOldEvents() {
+    try {
+        const now = new Date();
+        const todayStr = formatDateForStorage(now);
+
+        console.log(`Cleaning up events before ${todayStr}...`);
+
+        const snapshot = await db.collection('events')
+            .where('date', '<', todayStr)
+            .get();
+
+        if (snapshot.empty) {
+            console.log('No old events to clean up.');
+            return;
+        }
+
+        const batch = db.batch();
+        snapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+        console.log(`Successfully deleted ${snapshot.size} old events.`);
+    } catch (error) {
+        console.error('Error cleaning up old events:', error);
+    }
+}
+
+// Format date for storage (YYYY-MM-DD)
+function formatDateForStorage(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// Format date for display with relative day labels
+function formatEventDisplay(event) {
+    const eventDate = new Date(event.date + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    let dayLabel;
+    if (eventDate.getTime() === today.getTime()) {
+        dayLabel = 'oggi';
+    } else if (eventDate.getTime() === tomorrow.getTime()) {
+        dayLabel = 'domani';
+    } else {
+        const daysOfWeek = ['domenica', 'lunedì', 'martedì', 'mercoledì', 'giovedì', 'venerdì', 'sabato'];
+        dayLabel = daysOfWeek[eventDate.getDay()];
+    }
+
+    const typeLabel = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+    return `${typeLabel} di ${event.subject.toLowerCase()} ${dayLabel}`;
+}
+
+// Get relative day label for grouping
+function getRelativeDayLabel(dateStr) {
+    const eventDate = new Date(dateStr + 'T00:00:00');
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    if (eventDate.getTime() === today.getTime()) {
+        return 'Oggi';
+    } else if (eventDate.getTime() === tomorrow.getTime()) {
+        return 'Domani';
+    } else {
+        const daysOfWeek = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+        return daysOfWeek[eventDate.getDay()];
+    }
+}
+
+// Render events list in management modal
+async function renderEventsList() {
+    const eventsList = document.getElementById('eventsList');
+    if (!eventsList) return;
+
+    const events = await getAllEvents();
+
+    if (events.length === 0) {
+        eventsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">Nessun evento programmato</p>';
+        return;
+    }
+
+    // Group events by day
+    const eventsByDay = {};
+    events.forEach(event => {
+        const dayLabel = getRelativeDayLabel(event.date);
+        if (!eventsByDay[dayLabel]) {
+            eventsByDay[dayLabel] = [];
+        }
+        eventsByDay[dayLabel].push(event);
+    });
+
+    // Render grouped events
+    eventsList.innerHTML = '';
+    Object.keys(eventsByDay).forEach(dayLabel => {
+        const dayGroup = document.createElement('div');
+        dayGroup.className = 'event-day-group';
+
+        const dayLabelEl = document.createElement('div');
+        dayLabelEl.className = 'event-day-label';
+        dayLabelEl.textContent = dayLabel;
+        dayGroup.appendChild(dayLabelEl);
+
+        eventsByDay[dayLabel].forEach(event => {
+            const eventItem = document.createElement('div');
+            eventItem.className = 'event-item';
+            eventItem.onclick = () => openEventForm(event.id, event);
+
+            eventItem.innerHTML = `
+                <div class="event-item-type">${event.type}</div>
+                <div class="event-item-subject">${event.subject}</div>
+                <div class="event-item-details">${event.timeSlot}${event.volunteers && event.volunteers.length > 0 ? ` • ${event.volunteers.length} volontari` : ''}</div>
+        `;
+
+            dayGroup.appendChild(eventItem);
+        });
+
+        eventsList.appendChild(dayGroup);
+    });
+}
+
+// Update events widget in pill
+async function updateEventsWidget() {
+    const eventsWidget = document.getElementById('events-widget');
+    if (!eventsWidget) return;
+
+    const events = await getUpcomingEvents(7);
+
+    if (events.length === 0) {
+        eventsWidget.innerHTML = '<div class="event-pill-summary">Nessuna verifica a breve</div>';
+    } else {
+        const nextEvent = events[0];
+        const summary = formatEventDisplay(nextEvent);
+        eventsWidget.innerHTML = `<div class="event-pill-summary">${summary}</div>`;
+    }
+}
+
+// Update expanded events view
+async function updateExpandedEventsView() {
+    const eventsWidget = document.getElementById('events-widget');
+    if (!eventsWidget) return;
+
+    const events = await getUpcomingEvents(7);
+    const displayEvents = events.slice(0, 3); // Max 3 events
+
+    if (displayEvents.length === 0) {
+        eventsWidget.innerHTML = '<div class="event-pill-summary">Nessuna verifica a breve</div>';
+        return;
+    }
+
+    // Group events by day
+    const eventsByDay = {};
+    displayEvents.forEach(event => {
+        const dayLabel = getRelativeDayLabel(event.date);
+        if (!eventsByDay[dayLabel]) {
+            eventsByDay[dayLabel] = [];
+        }
+        eventsByDay[dayLabel].push(event);
+    });
+
+    // Sort events within each day by timeSlot (chronological order)
+    Object.keys(eventsByDay).forEach(dayLabel => {
+        eventsByDay[dayLabel].sort((a, b) => {
+            // Extract start time from timeSlot (format: "8:15-9:15")
+            const getStartTime = (timeSlot) => {
+                const startTime = timeSlot.split('-')[0]; // Get "8:15"
+                const [hours, minutes] = startTime.split(':').map(Number);
+                return hours * 60 + minutes; // Convert to minutes for comparison
+            };
+            return getStartTime(a.timeSlot) - getStartTime(b.timeSlot);
+        });
+    });
+
+    let html = '<div class="events-expanded-list">';
+    let animationDelay = 0.1;
+
+    Object.keys(eventsByDay).forEach(dayLabel => {
+        html += `<div class="event-pill-day-group">`;
+        html += `<div class="event-pill-day-label">${dayLabel}</div>`;
+        eventsByDay[dayLabel].forEach(event => {
+            const typeClass = event.type === 'interrogazione' ? 'type-interrogazione' : 'type-verifica';
+            const typeLabel = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+
+            html += `
+                <div class="event-pill-item ${typeClass}" style="animation-delay: ${animationDelay}s" onclick="window.openEventForm('${event.id}', {type: '${event.type}', subject: '${event.subject}', date: '${event.date}', timeSlot: '${event.timeSlot}', volunteers: ${JSON.stringify(event.volunteers || []).replace(/"/g, '&quot;')}})">
+                    <div class="event-pill-item-header">
+                        <div class="event-pill-item-subject">${event.subject}</div>
+                        <div class="event-pill-item-type-badge">${typeLabel}</div>
+                    </div>
+                    <div class="event-pill-item-details">
+                        <i class="far fa-clock"></i> ${event.timeSlot}
+                        ${event.volunteers && event.volunteers.length > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.volunteers.length}</span>` : ''}
+                    </div>
+                </div>
+            `;
+            animationDelay += 0.1;
+        });
+        html += `</div>`;
+    });
+    html += '</div>';
+
+    eventsWidget.innerHTML = html;
+}
+
+
 
 document.addEventListener('DOMContentLoaded', function () {
     // Precarica immagini per tutti i temi a evento
@@ -963,45 +1407,123 @@ document.addEventListener('DOMContentLoaded', function () {
     scheduleWidget.innerHTML = `<div class="schedule-info"><span id="materia-nome"></span><span id="materia-percentuale"></span></div><div class="progress-bar-container"><div id="materia-progress"></div></div>`;
     widgetContainer.appendChild(scheduleWidget);
 
+    // Create events widget (third widget for cycling)
+    const eventsWidget = document.createElement('div');
+    eventsWidget.id = 'events-widget';
+    eventsWidget.className = 'widget-content';
+    eventsWidget.innerHTML = '<div class="event-pill-summary">Caricamento eventi...</div>';
+    widgetContainer.appendChild(eventsWidget);
+
+    // Initialize events widget
+    updateEventsWidget();
+
     // Gestore per alternare i widget con animazione di dissolvenza
     let currentWidgetIndex = 0;
+    let isPillExpanded = false;
 
     // Imposta lo stato iniziale
     syncWidget.classList.add('active');
     statusPill.classList.add('sync-view');
     scheduleWidget.classList.remove('active');
+    eventsWidget.classList.remove('active');
+
+    // Pill click handler for expansion - ALWAYS shows events
+    statusPill.addEventListener('click', async function (e) {
+        e.stopPropagation();
+        if (!isPillExpanded) {
+            isPillExpanded = true;
+
+            // Remove all widget active states and pill view classes
+            syncWidget.classList.remove('active');
+            scheduleWidget.classList.remove('active');
+            eventsWidget.classList.remove('active');
+            statusPill.classList.remove('sync-view', 'schedule-view');
+
+            // Force expanded state and show events
+            statusPill.classList.add('expanded');
+            eventsWidget.classList.add('active');
+
+            // Update with events content
+            await updateExpandedEventsView();
+        }
+    });
+
+    // Click outside to collapse with smooth animation matching open
+    document.addEventListener('click', function (e) {
+        if (isPillExpanded && !statusPill.contains(e.target)) {
+            isPillExpanded = false;
+            statusPill.classList.remove('expanded');
+
+            // Restore the widget that was active before expansion
+            const widgets = [syncWidget, scheduleWidget, eventsWidget];
+            eventsWidget.classList.remove('active');
+            widgets[currentWidgetIndex].classList.add('active');
+
+            // Restore appropriate pill classes
+            if (currentWidgetIndex === 0) {
+                statusPill.classList.add('sync-view');
+            } else {
+                statusPill.classList.remove('sync-view');
+            }
+
+            // Update the widget content if needed
+            setTimeout(() => {
+                if (currentWidgetIndex === 2) {
+                    updateEventsWidget();
+                }
+            }, 400);
+        }
+    });
 
     setInterval(() => {
-        const widgets = [syncWidget, scheduleWidget];
+        // Don't cycle if pill is expanded
+        if (isPillExpanded) return;
+
+        const widgets = [syncWidget, scheduleWidget, eventsWidget];
         const isScheduleVisible = scheduleWidget.dataset.visible === 'true';
         const isScheduleEnabled = localStorage.getItem('showSchedule') !== 'false';
-
-        // Determina se è necessario cambiare vista
-        const shouldSwitch = isScheduleVisible && isScheduleEnabled;
-        if (!shouldSwitch && currentWidgetIndex === 0) {
-            return; // Se non si deve cambiare e siamo già su sync, non fare nulla
-        }
 
         // 1. Dissolvi l'intera pillola
         statusPill.style.opacity = '0';
 
         // 2. Attendi la fine della dissolvenza per cambiare il contenuto
         setTimeout(() => {
-            let nextWidgetIndex = currentWidgetIndex;
-            if (shouldSwitch) {
+            // Determine next widget based on availability
+            let nextWidgetIndex;
+
+            if (isScheduleVisible && isScheduleEnabled) {
+                // Cycle through all three widgets
                 nextWidgetIndex = (currentWidgetIndex + 1) % widgets.length;
             } else {
-                nextWidgetIndex = 0; // Se l'orario non è più disponibile, forza la vista sync
+                // Only cycle between sync and events (skip schedule)
+                // If current is sync (0), next is events (2)
+                // If current is events (2), next is sync (0)
+                // If current is schedule (1), it should skip to events (2) or sync (0)
+                if (currentWidgetIndex === 0) {
+                    nextWidgetIndex = 2; // From sync to events
+                } else { // currentWidgetIndex is 1 (schedule) or 2 (events)
+                    nextWidgetIndex = 0; // From schedule/events to sync
+                }
             }
 
             // Aggiorna le classi per contenuto e dimensione
-            widgets[currentWidgetIndex].classList.remove('active');
-            widgets[nextWidgetIndex].classList.add('active');
+            widgets.forEach((widget, index) => {
+                if (index === nextWidgetIndex) {
+                    widget.classList.add('active');
+                } else {
+                    widget.classList.remove('active');
+                }
+            });
 
             if (nextWidgetIndex === 0) {
                 statusPill.classList.add('sync-view');
             } else {
                 statusPill.classList.remove('sync-view');
+            }
+
+            // Update events widget if it's being shown
+            if (nextWidgetIndex === 2) {
+                updateEventsWidget();
             }
 
             currentWidgetIndex = nextWidgetIndex;
@@ -1076,6 +1598,10 @@ document.addEventListener('DOMContentLoaded', function () {
         else if (infoModal.style.display === 'block') closeModal(infoModal);
         else if (scheduleModal.style.display === 'block') closeModal(scheduleModal);
         else if (calendarModal && calendarModal.style.display === 'block') closeModal(calendarModal);
+        else if (passcodeModal && passcodeModal.style.display === 'block') closeModal(passcodeModal);
+        else if (eventManagementModal && eventManagementModal.style.display === 'block') closeModal(eventManagementModal);
+        else if (eventFormModal && eventFormModal.style.display === 'block') closeModal(eventFormModal);
+        else if (volunteersModal && volunteersModal.style.display === 'block') closeModal(volunteersModal);
     });
 
     if (fontSelect) {
@@ -1140,16 +1666,318 @@ document.addEventListener('DOMContentLoaded', function () {
         ths[currentDay - 1].classList.add('current-day');
     }
 
+    // --- EVENT MANAGEMENT MODAL HANDLERS ---
+
+    const editEventsBtn = document.getElementById('editEventsBtn');
+    const passcodeModal = document.getElementById('passcodeModal');
+    const passcodeInput = document.getElementById('passcodeInput');
+    const passcodeError = document.getElementById('passcodeError');
+    const submitPasscode = document.getElementById('submitPasscode');
+    const cancelPasscode = document.getElementById('cancelPasscode');
+
+    const eventManagementModal = document.getElementById('eventManagementModal');
+    const newEventBtn = document.getElementById('newEventBtn');
+    const closeEventManagement = document.getElementById('closeEventManagement');
+
+    const eventFormModal = document.getElementById('eventFormModal');
+    const eventFormTitle = document.getElementById('eventFormTitle');
+    const typeOptions = document.querySelectorAll('.type-option');
+    const eventSubject = document.getElementById('eventSubject');
+    const eventDate = document.getElementById('eventDate');
+    const eventTimeSlot = document.getElementById('eventTimeSlot');
+    const volunteersGroup = document.getElementById('volunteersGroup');
+    const selectVolunteersBtn = document.getElementById('selectVolunteersBtn');
+    const selectedVolunteersList = document.getElementById('selectedVolunteersList');
+    const saveEventBtn = document.getElementById('saveEventBtn');
+    const deleteEventBtn = document.getElementById('deleteEventBtn');
+
+    const volunteersModal = document.getElementById('volunteersModal');
+    const cancelVolunteers = document.getElementById('cancelVolunteers');
+    const confirmVolunteers = document.getElementById('confirmVolunteers');
+
+    // Open passcode modal when clicking "Modifica eventi"
+    if (editEventsBtn) {
+        editEventsBtn.addEventListener('click', () => {
+            closeModal(settingsModal);
+            setTimeout(() => {
+                openModal(passcodeModal);
+                passcodeInput.value = '';
+                passcodeError.style.display = 'none';
+                setTimeout(() => passcodeInput.focus(), 100);
+            }, 400);
+        });
+    }
+
+    // Submit passcode
+    if (submitPasscode) {
+        submitPasscode.addEventListener('click', () => {
+            const inputValue = passcodeInput.value.trim();
+            if (validatePasscode(inputValue)) {
+                closeModal(passcodeModal);
+                setTimeout(() => {
+                    openEventManagementModal();
+                }, 400);
+            } else {
+                passcodeError.style.display = 'block';
+                passcodeInput.value = '';
+                passcodeInput.focus();
+            }
+        });
+    }
+
+    // Allow Enter key to submit passcode
+    if (passcodeInput) {
+        passcodeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                submitPasscode.click();
+            }
+        });
+
+        // Only allow numbers
+        passcodeInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+    }
+
+    if (cancelPasscode) {
+        cancelPasscode.addEventListener('click', () => {
+            closeModal(passcodeModal);
+        });
+    }
+
+    // Open event management modal
+    async function openEventManagementModal() {
+        await renderEventsList();
+        openModal(eventManagementModal);
+    }
+
+    // Close event management modal
+    if (closeEventManagement) {
+        closeEventManagement.addEventListener('click', () => {
+            closeModal(eventManagementModal);
+        });
+    }
+
+    // Open new event form
+    if (newEventBtn) {
+        newEventBtn.addEventListener('click', () => {
+            openEventForm();
+        });
+    }
+
+    // Open event form (create or edit mode)
+    function openEventForm(eventId = null, eventData = null) {
+        currentEditingEventId = eventId;
+        selectedVolunteers = [];
+
+        if (eventId && eventData) {
+            // Edit mode
+            eventFormTitle.textContent = 'Modifica Evento';
+            deleteEventBtn.style.display = 'block';
+
+            // Set form values
+            typeOptions.forEach(option => {
+                if (option.dataset.type === eventData.type) {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+
+            eventSubject.value = eventData.subject || '';
+            eventDate.value = eventData.date || '';
+            eventTimeSlot.value = eventData.timeSlot || '';
+
+            if (eventData.type === 'interrogazione') {
+                volunteersGroup.style.display = 'block';
+                selectedVolunteers = eventData.volunteers || [];
+                updateSelectedVolunteersDisplay();
+            } else {
+                volunteersGroup.style.display = 'none';
+            }
+        } else {
+            // Create mode
+            eventFormTitle.textContent = 'Nuovo Evento';
+            deleteEventBtn.style.display = 'none';
+
+            // Reset form
+            typeOptions.forEach(option => {
+                if (option.dataset.type === 'interrogazione') {
+                    option.classList.add('active');
+                } else {
+                    option.classList.remove('active');
+                }
+            });
+
+            eventSubject.value = '';
+            eventDate.value = '';
+            eventTimeSlot.value = '';
+            volunteersGroup.style.display = 'block';
+            selectedVolunteers = [];
+            updateSelectedVolunteersDisplay();
+        }
+
+        closeModal(eventManagementModal);
+        setTimeout(() => {
+            openModal(eventFormModal);
+        }, 400);
+    }
+
+    // Make openEventForm available globally for event item clicks
+    window.openEventForm = openEventForm;
+
+    // Type toggle handler
+    typeOptions.forEach(option => {
+        option.addEventListener('click', () => {
+            typeOptions.forEach(opt => opt.classList.remove('active'));
+            option.classList.add('active');
+
+            if (option.dataset.type === 'interrogazione') {
+                volunteersGroup.style.display = 'block';
+            } else {
+                volunteersGroup.style.display = 'none';
+            }
+        });
+    });
+
+    // Open volunteers selection modal
+    if (selectVolunteersBtn) {
+        selectVolunteersBtn.addEventListener('click', () => {
+            // Populate checkboxes with current selection
+            const checkboxes = volunteersModal.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = selectedVolunteers.includes(checkbox.value);
+            });
+
+            // Close event form modal and open volunteers modal
+            closeModal(eventFormModal);
+            setTimeout(() => {
+                openModal(volunteersModal);
+            }, 400);
+        });
+    }
+
+    // Confirm volunteers selection
+    if (confirmVolunteers) {
+        confirmVolunteers.addEventListener('click', () => {
+            const checkboxes = volunteersModal.querySelectorAll('input[type="checkbox"]:checked');
+            selectedVolunteers = Array.from(checkboxes).map(cb => cb.value);
+            updateSelectedVolunteersDisplay();
+
+            // Close volunteers modal and reopen event form
+            closeModal(volunteersModal);
+            setTimeout(() => {
+                openModal(eventFormModal);
+            }, 400);
+        });
+    }
+
+    // Cancel volunteers selection
+    if (cancelVolunteers) {
+        cancelVolunteers.addEventListener('click', () => {
+            // Close volunteers modal and reopen event form
+            closeModal(volunteersModal);
+            setTimeout(() => {
+                openModal(eventFormModal);
+            }, 400);
+        });
+    }
+
+    // Cancel event form
+    const cancelEventBtn = document.getElementById('cancelEventBtn');
+    if (cancelEventBtn) {
+        cancelEventBtn.addEventListener('click', () => {
+            closeModal(eventFormModal);
+        });
+    }
+
+    // Update selected volunteers display
+    function updateSelectedVolunteersDisplay() {
+        if (selectedVolunteers.length === 0) {
+            selectedVolunteersList.innerHTML = '';
+            if (selectVolunteersBtn) {
+                selectVolunteersBtn.textContent = 'Seleziona volontari...';
+            }
+        } else {
+            if (selectVolunteersBtn) {
+                selectVolunteersBtn.textContent = `${selectedVolunteers.length} volontari selezionati`;
+            }
+            selectedVolunteersList.innerHTML = selectedVolunteers.map(name => {
+                return `<div class="volunteer-tag">${name}</div>`;
+            }).join('');
+        }
+    }
+
+    // Save event
+    if (saveEventBtn) {
+        saveEventBtn.addEventListener('click', async () => {
+            // Validate form
+            const selectedType = document.querySelector('.type-option.active').dataset.type;
+            const subject = eventSubject.value;
+            const date = eventDate.value;
+            const timeSlot = eventTimeSlot.value;
+
+            if (!subject || !date || !timeSlot) {
+                alert('Per favore compila tutti i campi obbligatori');
+                return;
+            }
+
+            // Prepare event data
+            const eventData = {
+                type: selectedType,
+                subject: subject,
+                date: date,
+                timeSlot: timeSlot,
+                volunteers: selectedType === 'interrogazione' ? selectedVolunteers : []
+            };
+
+            // Save to Firebase
+            const success = await saveEvent(eventData);
+
+            if (success) {
+                closeModal(eventFormModal);
+                setTimeout(async () => {
+                    await openEventManagementModal();
+                    updateEventsWidget(); // Refresh pill display
+                }, 400);
+            } else {
+                alert('Errore durante il salvataggio dell\'evento. Riprova.');
+            }
+        });
+    }
+
+    // Delete event
+    if (deleteEventBtn) {
+        deleteEventBtn.addEventListener('click', async () => {
+            if (confirm('Sei sicuro di voler eliminare questo evento?')) {
+                const success = await deleteEvent(currentEditingEventId);
+
+                if (success) {
+                    closeModal(eventFormModal);
+                    setTimeout(async () => {
+                        await openEventManagementModal();
+                        updateEventsWidget(); // Refresh pill display
+                    }, 400);
+                } else {
+                    alert('Errore durante l\'eliminazione dell\'evento. Riprova.');
+                }
+            }
+        });
+    }
+
     syncTimeWithServer();
     updateClock();
     setInterval(updateClock, 1000);
+
+    // Auto-cleanup old events
+    cleanupOldEvents();
 
     setInterval(function () {
         if (!isSyncing && lastSyncTime > 0) {
             const timeSinceSync = Math.floor((Date.now() - lastSyncTime) / 1000);
             const showOffset = localStorage.getItem('showOffset') === 'true';
             const offsetText = showOffset ? ` (offset: ${serverTimeOffset}ms)` : '';
-            updateSyncStatus(`Ultimo aggiornamento: ${timeSinceSync}s fa${offsetText}`, timeSinceSync > 900);
+            updateSyncStatus(`Ultimo aggiornamento: ${timeSinceSync}s fa${offsetText} `, timeSinceSync > 900);
         }
     }, 5000);
 });
