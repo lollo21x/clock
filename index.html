@@ -128,6 +128,7 @@
             </div>
             <div class="settings-section">
                 <h4>Avanzate</h4>
+                <button id="editEventsBtn">Modifica eventi</button>
                 <button id="forceSync">Forza Sincronizzazione</button>
                 <div class="toggle-container">
                     <span class="toggle-label">Mostra offset</span>
@@ -247,7 +248,215 @@
         </div>
     </div>
 
-    <script src="script.js?v=3.0"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Passcode Modal -->
+    <div id="passcodeModal" class="modal">
+        <div class="modal-header">
+            <h3>Accesso Gestione Eventi</h3>
+        </div>
+        <div class="passcode-content">
+            <p style="margin-bottom: 20px; color: #666;">Inserisci il codice di accesso a 4 cifre:</p>
+            <input type="text" id="passcodeInput" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="0000"
+                style="width: 100%; padding: 15px; font-size: 1.5rem; text-align: center; 
+                   border: 2px solid #ddd; border-radius: 15px; font-family: 'Consolas', monospace; letter-spacing: 0.5em;">
+            <div id="passcodeError" style="color: #ff6b6b; margin-top: 10px; display: none; text-align: center;">
+                Codice non valido. Riprova.
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelPasscode">Annulla</button>
+            <button id="submitPasscode">Conferma</button>
+        </div>
+    </div>
+
+    <!-- Event Management Modal -->
+    <div id="eventManagementModal" class="modal event-management-modal">
+        <div class="modal-header">
+            <h3>Gestione Eventi</h3>
+        </div>
+        <div class="event-management-content">
+            <button id="newEventBtn" class="new-event-btn">
+                <span style="font-size: 1.5rem; margin-right: 8px;">+</span> Nuovo evento
+            </button>
+            <div id="eventsList" class="events-list">
+                <!-- Events will be dynamically rendered here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div></div>
+            <button id="closeEventManagement">Chiudi</button>
+        </div>
+    </div>
+
+    <!-- Event Form Modal -->
+    <div id="eventFormModal" class="modal event-form-modal">
+        <div class="modal-header">
+            <h3 id="eventFormTitle">Nuovo Evento</h3>
+        </div>
+        <div class="event-form-content">
+            <div class="form-group">
+                <label>Tipo</label>
+                <div class="type-toggle">
+                    <button class="type-option active" data-type="interrogazione">Interrogazione</button>
+                    <button class="type-option" data-type="verifica">Verifica</button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="eventSubject">Materia</label>
+                <select id="eventSubject">
+                    <option value="">Seleziona materia...</option>
+                    <option value="Arte">Arte</option>
+                    <option value="Fisica">Fisica</option>
+                    <option value="Filosofia">Filosofia</option>
+                    <option value="Ginnastica">Ginnastica</option>
+                    <option value="Informatica">Informatica</option>
+                    <option value="Inglese">Inglese</option>
+                    <option value="Italiano">Italiano</option>
+                    <option value="Matematica">Matematica</option>
+                    <option value="Religione">Religione</option>
+                    <option value="Scienze">Scienze</option>
+                    <option value="Storia">Storia</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="eventDate">Data</label>
+                <input type="date" id="eventDate">
+            </div>
+            <div class="form-group">
+                <label for="eventTimeSlot">Ora</label>
+                <select id="eventTimeSlot">
+                    <option value="">Seleziona fascia oraria...</option>
+                    <option value="8:15-9:15">8:15-9:15</option>
+                    <option value="9:15-10:20">9:15-10:20</option>
+                    <option value="10:20-11:15">10:20-11:15</option>
+                    <option value="11:15-12:15">11:15-12:15</option>
+                    <option value="12:15-13:15">12:15-13:15</option>
+                </select>
+            </div>
+            <div class="form-group" id="volunteersGroup" style="display: none;">
+                <label>Volontari</label>
+                <button type="button" id="selectVolunteersBtn" class="select-volunteers-btn">
+                    Seleziona volontari...
+                </button>
+                <div id="selectedVolunteersList" class="selected-volunteers"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelEventBtn">Annulla</button>
+            <div style="display: flex; gap: 10px;">
+                <button id="deleteEventBtn" style="background-color: #d63031; display: none;">Elimina evento</button>
+                <button id="saveEventBtn">Salva</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Volunteers Selection Modal -->
+    <div id="volunteersModal" class="modal volunteers-modal">
+        <div class="modal-header">
+            <h3>Seleziona Volontari</h3>
+        </div>
+        <div class="volunteers-content">
+            <div class="volunteers-grid">
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Anamika Badial">
+                    <span>Anamika Badial</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Sara Burzacca">
+                    <span>Sara Burzacca</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Alessia Buselli">
+                    <span>Alessia Buselli</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Arianna Buselli">
+                    <span>Arianna Buselli</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Lorenzo Cingolani">
+                    <span>Lorenzo Cingolani</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Gabriele Dipasquale">
+                    <span>Gabriele Dipasquale</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Riccardo Gerini">
+                    <span>Riccardo Gerini</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Mario Gulino">
+                    <span>Mario Gulino</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Zhennan Hu">
+                    <span>Zhennan Hu</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Gaia Mancini">
+                    <span>Gaia Mancini</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Mose' Mariangeli">
+                    <span>Mose' Mariangeli</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Angela Mazzarella">
+                    <span>Angela Mazzarella</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Elena Monno">
+                    <span>Elena Monno</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Federica Nocerino">
+                    <span>Federica Nocerino</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Riccardo Persigilli">
+                    <span>Riccardo Persigilli</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Marco Radatti">
+                    <span>Marco Radatti</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Federico Romaldini">
+                    <span>Federico Romaldini</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Maksym Sachuk">
+                    <span>Maksym Sachuk</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Andrea Santini">
+                    <span>Andrea Santini</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Davide Tonti">
+                    <span>Davide Tonti</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Igli Xhepa">
+                    <span>Igli Xhepa</span>
+                </label>
+                <label class="volunteer-checkbox">
+                    <input type="checkbox" value="Jiayi Xiong">
+                    <span>Jiayi Xiong</span>
+                </label>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="cancelVolunteers">Annulla</button>
+            <button id="confirmVolunteers">Conferma</button>
+        </div>
+    </div>
+
+    <script src="script.js?v=4.0"></script>
 </body>
 
 </html>
