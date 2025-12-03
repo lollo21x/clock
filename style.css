@@ -311,6 +311,22 @@ input:checked+.toggle-slider:before {
     transform: translateX(22px);
 }
 
+:root {
+    --theme-color: #1b912b;
+    /* Default Green */
+}
+
+#editEventsBtn {
+    background-color: var(--theme-color);
+    color: white;
+    border-radius: 25px;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+#editEventsBtn:hover {
+    transform: scale(1.01);
+}
+
 #forceSync {
     background-color: #d63031;
     color: white;
@@ -365,13 +381,13 @@ button {
     padding: 8px 16px;
     border: none;
     border-radius: 50px;
-    background-color: #1b912b;
+    background-color: var(--theme-color);
     color: white;
     cursor: pointer;
     font-size: 16px;
     font-weight: 500;
     font-family: 'Montserrat', sans-serif;
-    transition: transform 0.3s ease;
+    transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 button:hover {
@@ -388,32 +404,46 @@ button:hover {
     bottom: 20px;
     left: 50%;
     transform: translateX(-50%);
-    height: 50px;
     background-color: white;
-    border-radius: 25px;
+    border-radius: 30px;
     display: flex;
     align-items: center;
     justify-content: center;
-    max-width: 90%;
     z-index: 10;
+    /* Removed box-shadow as requested */
+    overflow: hidden;
 
-    /* Transizione fluida per larghezza e opacità */
-    transition: width 0.4s ease-in-out, opacity 0.4s ease;
+    /* Transizione fluida per dimensioni e opacità */
+    transition:
+        max-width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+        max-height 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+        border-radius 0.5s ease,
+        background-color 0.3s ease,
+        padding 0.5s ease,
+        opacity 0.4s ease;
+    /* Restored opacity transition */
 
-    /* Stato di default (stretto, per la barra di progresso) */
-    width: 250px;
+    /* Stato di default (stretto) */
+    width: auto;
+    /* Adatta la larghezza al contenuto */
+    min-width: 150px;
+    /* Minimo per non essere troppo piccolo */
+    max-width: 300px;
+    /* Massimo per il collapsed state */
+    height: 50px;
+    max-height: 50px;
     padding: 0 20px;
 }
 
 #status-pill.sync-view {
-    /* Stato espanso: la larghezza si adatta al contenuto. `auto` è la chiave. */
+    /* Stato sync: simile al default ma può adattarsi leggermente */
     width: auto;
 }
 
 #sync-status {
     white-space: nowrap;
-    /* Fondamentale: impedisce al testo di andare a capo */
     text-align: center;
+    font-weight: 500;
 }
 
 .widget-container {
@@ -490,9 +520,10 @@ button:hover {
 }
 
 .schedule-table th {
-    background-color: #1b912b;
+    background-color: var(--theme-color);
     color: white;
     font-weight: bold;
+    transition: background-color 0.3s ease;
 }
 
 .schedule-table td {
@@ -687,7 +718,6 @@ button:hover {
     background-color: #dc2626;
     color: white;
     border-color: #dc2626;
-    box-shadow: 0 2px 5px rgba(220, 38, 38, 0.3);
 }
 
 .calendar-day.future-month {
@@ -720,4 +750,450 @@ button:hover {
 #calendarModal .modal-footer {
     padding: 10px;
     margin-top: 0;
+}
+
+/* --- EVENT MANAGEMENT MODALS STYLES --- */
+
+/* Passcode Modal */
+.passcode-content {
+    padding: 20px 0;
+    text-align: center;
+}
+
+#passcodeModal {
+    padding: 20px;
+    max-width: 400px;
+    width: 85%;
+}
+
+#passcodeInput {
+    width: 80% !important;
+    max-width: 250px !important;
+}
+
+/* Event Management Modal */
+.event-management-modal {
+    max-width: 800px;
+    width: 95%;
+    max-height: 85vh;
+    padding: 20px;
+}
+
+.event-management-content {
+    margin-bottom: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+    padding: 0 5px;
+}
+
+.new-event-btn {
+    width: calc(100% - 10px);
+    max-width: 100%;
+    padding: 12px;
+    background-color: var(--theme-color);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.3s ease;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Montserrat', sans-serif;
+    box-sizing: border-box;
+}
+
+.new-event-btn:hover {
+    transform: scale(1.002);
+}
+
+.events-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+}
+
+.event-day-group {
+    margin-bottom: 15px;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.event-day-label {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.event-item {
+    background-color: #f9f9f9;
+    border-radius: 15px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.event-item:hover {
+    background-color: #f0f0f0;
+    border-color: var(--theme-color);
+    transform: translateX(5px);
+}
+
+.event-item-type {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: var(--theme-color);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+    display: none;
+    /* Hidden from public view */
+}
+
+.event-item-subject {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.event-item-details {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+/* Event Form Modal */
+.event-form-modal {
+    max-width: 900px;
+    width: 95%;
+    max-height: 90vh;
+    padding: 20px;
+}
+
+.event-form-content {
+    margin-bottom: 10px;
+    max-height: 65vh;
+    overflow-y: auto;
+    padding: 0 10px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="date"],
+.form-group select,
+.select-volunteers-btn {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 15px;
+    font-family: 'Montserrat', sans-serif;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+    background-color: white;
+    cursor: pointer;
+}
+
+.form-group input[type="date"]:focus,
+.form-group select:focus,
+.select-volunteers-btn:focus {
+    outline: none;
+    border-color: var(--theme-color);
+}
+
+/* Type Toggle */
+.type-toggle {
+    display: flex;
+    gap: 10px;
+    width: calc(100% - 4px);
+}
+
+.type-option {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    background-color: white;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: normal;
+    color: #666;
+    box-sizing: border-box;
+}
+
+.type-option:hover {
+    transform: scale(1.002);
+    border-color: var(--theme-color);
+}
+
+.type-option.active {
+    background-color: var(--theme-color);
+    color: white;
+    border-color: var(--theme-color);
+    font-weight: normal;
+}
+
+/* Volunteers Selection Button - now styled with .form-group select above */
+/* Override global button styles for this specific button */
+.select-volunteers-btn {
+    margin: 0;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 15px;
+    background-color: white;
+    color: #333;
+    text-align: left;
+}
+
+.select-volunteers-btn:hover {
+    transform: none;
+    border-color: var(--theme-color);
+}
+
+.selected-volunteers {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.volunteer-tag {
+    background-color: var(--theme-color);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.volunteer-tag .remove {
+    cursor: pointer;
+    font-weight: bold;
+    margin-left: 5px;
+}
+
+/* Volunteers Modal */
+.volunteers-modal {
+    max-width: 700px;
+    width: 90%;
+    max-height: 85vh;
+    padding: 20px;
+}
+
+.volunteers-content {
+    margin-bottom: 10px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.volunteers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.volunteer-checkbox {
+    display: flex;
+    align-items: center;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.volunteer-checkbox:hover {
+    background-color: #f9f9f9;
+    border-color: var(--theme-color);
+}
+
+.volunteer-checkbox input[type="checkbox"] {
+    margin-right: 10px;
+    cursor: pointer;
+    width: 18px;
+    height: 18px;
+}
+
+.volunteer-checkbox input[type="checkbox"]:checked+span {
+    font-weight: bold;
+    color: var(--theme-color);
+}
+
+/* Status Pill Expanded State */
+#status-pill.expanded {
+    max-width: 500px;
+    /* Larghezza massima espansa */
+    height: auto;
+    /* Altezza dinamica basata sul contenuto */
+    max-height: none !important;
+    /* Rimuove qualsiasi limite di altezza massima */
+    min-height: 140px;
+    /* Altezza minima per estetica */
+    border-radius: 25px;
+    padding: 25px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    /* Sovrascrive la transizione per rimuovere max-height quando espanso */
+    transition:
+        max-width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
+        border-radius 0.5s ease,
+        background-color 0.3s ease,
+        padding 0.5s ease,
+        opacity 0.4s ease;
+}
+
+/* Rimuoviamo la transizione generica che potrebbe confliggere */
+/* #status-pill { transition: ... } è già definito sopra */
+
+/* Events Widget Styles */
+#events-widget {
+    flex-direction: column;
+    gap: 8px;
+    align-items: stretch;
+    text-align: center;
+}
+
+.event-pill-summary {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.events-expanded-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.event-pill-day-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.event-pill-day-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-left: 5px;
+    margin-bottom: 2px;
+}
+
+.event-pill-item {
+    background-color: #f8f9fa;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: left;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    /* Removed border-left and box-shadow as requested */
+
+    /* Animation for staggered entry */
+    opacity: 0;
+    transform: translateY(10px);
+    animation: fadeInUp 0.4s ease forwards;
+}
+
+.event-pill-item:hover {
+    transform: translateY(-2px);
+    background-color: #fff;
+}
+
+/* Removed specific border colors based on type */
+/* .event-pill-item.type-interrogazione { border-left-color: ... } */
+/* .event-pill-item.type-verifica { border-left-color: ... } */
+
+.event-pill-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.event-pill-item-subject {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #333;
+}
+
+.event-pill-item-type-badge {
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 10px;
+    text-transform: uppercase;
+    background-color: #eee;
+    color: #666;
+}
+
+.event-pill-item.type-interrogazione .event-pill-item-type-badge {
+    background-color: #fef5e7;
+    color: #f39c12;
+}
+
+.event-pill-item.type-verifica .event-pill-item-type-badge {
+    background-color: #fdedec;
+    color: #e74c3c;
+}
+
+.event-pill-item-details {
+    font-size: 0.9rem;
+    color: #666;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.event-pill-item-details i {
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile adjustments for event modals */
+@media (max-width: 768px) {
+    .volunteers-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .event-management-modal,
+    .event-form-modal,
+    .volunteers-modal {
+        width: 95%;
+        max-height: 90vh;
+    }
 }
