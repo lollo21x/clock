@@ -141,11 +141,16 @@ body {
 }
 
 #githubIcon {
-    right: 260px;
+    right: 320px;
     background-color: #333;
 }
 
 #calendarIcon {
+    right: 260px;
+    background-color: #1b912b;
+}
+
+#eventsCalendarIcon {
     right: 200px;
     background-color: #1b912b;
 }
@@ -410,18 +415,19 @@ button:hover {
     align-items: center;
     justify-content: center;
     z-index: 10;
+    box-sizing: border-box;
     /* Removed box-shadow as requested */
     overflow: hidden;
 
-    /* Transizione fluida per dimensioni e opacità */
+    /* Transizione fluida per dimensioni (NO opacity - solo il contenuto fa fade) */
+    /* Aggiunto min-height alla transizione per evitare scatti */
     transition:
-        max-width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-        max-height 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-        border-radius 0.5s ease,
+        max-width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        min-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         background-color 0.3s ease,
-        padding 0.5s ease,
-        opacity 0.4s ease;
-    /* Restored opacity transition */
+        padding 0.5s ease;
 
     /* Stato di default (stretto) */
     width: auto;
@@ -430,8 +436,12 @@ button:hover {
     /* Minimo per non essere troppo piccolo */
     max-width: 300px;
     /* Massimo per il collapsed state */
-    height: 50px;
+
+    /* USARE height: auto + vincoli per permettere animazione fluida verso expanded */
+    height: auto;
+    min-height: 50px;
     max-height: 50px;
+
     padding: 0 20px;
 }
 
@@ -728,7 +738,9 @@ button:hover {
 
 /* Mobile adjustments for calendar */
 @media (max-width: 768px) {
-    #calendarIcon {
+
+    #calendarIcon,
+    #eventsCalendarIcon {
         display: none;
     }
 
@@ -748,7 +760,8 @@ button:hover {
 
 /* Fix spacing for calendar modal footer */
 #calendarModal .modal-footer {
-    padding: 10px;
+    padding: 15px 25px 25px 25px;
+    /* Equalize right and bottom spacing (approx) */
     margin-top: 0;
 }
 
@@ -846,9 +859,9 @@ button:hover {
 }
 
 .event-item:hover {
-    background-color: #f0f0f0;
-    border-color: var(--theme-color);
-    transform: translateX(5px);
+    /* background-color: #f0f0f0; Removed */
+    /* border-color: var(--theme-color); Removed */
+    /* transform: scale(1.02); Removed as requested */
 }
 
 .event-item-type {
@@ -1049,7 +1062,7 @@ button:hover {
     /* Larghezza massima espansa */
     height: auto;
     /* Altezza dinamica basata sul contenuto */
-    max-height: none !important;
+    max-height: 800px;
     /* Rimuove qualsiasi limite di altezza massima */
     min-height: 140px;
     /* Altezza minima per estetica */
@@ -1058,13 +1071,7 @@ button:hover {
     flex-direction: column;
     justify-content: flex-start;
     align-items: stretch;
-    /* Sovrascrive la transizione per rimuovere max-height quando espanso */
-    transition:
-        max-width 0.5s cubic-bezier(0.25, 1, 0.5, 1),
-        border-radius 0.5s ease,
-        background-color 0.3s ease,
-        padding 0.5s ease,
-        opacity 0.4s ease;
+    /* La transizione è ereditata da #status-pill base */
 }
 
 /* Rimuoviamo la transizione generica che potrebbe confliggere */
@@ -1123,8 +1130,9 @@ button:hover {
 }
 
 .event-pill-item:hover {
-    transform: translateY(-2px);
-    background-color: #fff;
+    transform: scale(1.02);
+    /* Scale only */
+    /* background-color: #fff; Removed */
 }
 
 /* Removed specific border colors based on type */
@@ -1196,4 +1204,392 @@ button:hover {
         width: 95%;
         max-height: 90vh;
     }
+}
+
+/* --- EVENT PREVIEW MODAL STYLES (ROUND 3) --- */
+.event-preview-modal {
+    width: auto;
+    min-width: 350px;
+    max-width: 90%;
+    border-radius: 24px;
+    padding: 0;
+    box-shadow: none;
+    /* Removed shadow as requested */
+    overflow: hidden;
+    background: white;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.95);
+    border: 1px solid #eee;
+    /* Light border instead of shadow */
+}
+
+.event-preview-modal .modal-header {
+    background: linear-gradient(135deg, #f6f8fa 0%, #e9ecef 100%);
+    padding: 20px 25px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.event-preview-modal .modal-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    color: #2c3e50;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+.preview-type-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.preview-type-chip.interrogazione {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.preview-type-chip.verifica {
+    background-color: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.preview-content {
+    padding: 25px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+.preview-countdown {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+}
+
+.preview-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.preview-row:last-child {
+    border-bottom: none;
+}
+
+.preview-label {
+    font-weight: 600;
+    color: #7f8c8d;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.preview-label i {
+    width: 20px;
+    text-align: center;
+    color: var(--theme-color);
+}
+
+.preview-value {
+    font-weight: 600;
+    color: #2c3e50;
+    font-size: 1.05rem;
+    text-align: right;
+}
+
+.preview-section {
+    margin-top: 20px;
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 16px;
+}
+
+.preview-section .preview-label {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.preview-volunteers-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.preview-volunteer-item {
+    background-color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: #333;
+    border: 1px solid #e0e0e0;
+}
+
+.event-preview-modal .modal-footer {
+    padding: 15px 25px;
+    background: #fff;
+    border-top: none;
+    justify-content: center;
+    /* Center the close button */
+}
+
+.event-preview-modal .modal-footer button {
+    width: 100%;
+    background-color: #f1f2f6;
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.event-preview-modal .modal-footer button:hover {
+    /* background-color: #e1e2e6; Removed as requested */
+    transform: scale(1.02);
+}
+
+/* --- MONTHLY CALENDAR STYLES --- */
+.month-calendar-modal {
+    max-width: 600px;
+    width: 95%;
+    border-radius: 25px;
+    padding: 0;
+    overflow: hidden;
+    padding-bottom: 20px;
+    /* Add padding at bottom */
+}
+
+.calendar-nav-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--theme-color);
+    color: white;
+    padding: 15px 20px;
+}
+
+.calendar-nav-btn {
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    color: white;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.calendar-nav-btn:hover {
+    background: rgba(255, 255, 255, 0.4);
+    transform: none;
+    /* Override default button hover scale */
+}
+
+.calendar-body {
+    padding: 15px;
+}
+
+.calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    text-align: center;
+    font-weight: bold;
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.month-calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.calendar-day-cell {
+    aspect-ratio: 1;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 5px;
+    font-weight: 600;
+    color: #333;
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
+}
+
+.calendar-day-cell:hover {
+    background-color: #e9ecef;
+}
+
+.calendar-day-cell.empty {
+    background-color: transparent;
+    cursor: default;
+}
+
+.calendar-day-cell.today {
+    background-color: #e3f2fd;
+    color: var(--theme-color);
+    border: 2px solid var(--theme-color);
+}
+
+.calendar-day-cell.disabled {
+    background-color: #f5f5f5;
+    color: #ccc;
+    cursor: default;
+    pointer-events: none;
+}
+
+.calendar-day-cell.has-events {
+    cursor: pointer;
+}
+
+/* Unify hover effect for all active days (future/today) */
+.calendar-day-cell:not(.disabled):hover {
+    background-color: #e9ecef;
+    /* Darken slightly */
+    transform: none;
+    /* No scale */
+    box-shadow: none;
+    /* No shadow */
+    z-index: auto;
+}
+
+/* Specific style for today to maintain visibility on hover */
+.calendar-day-cell.today:hover {
+    background-color: #d1e9fc;
+    /* Slightly darker blue than normal today */
+}
+
+.event-dots-container {
+    display: flex;
+    gap: 3px;
+    margin-top: 4px;
+}
+
+.event-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.event-dot.interrogazione {
+    background-color: #ffc107;
+    /* Yellow */
+}
+
+.event-dot.verifica {
+    background-color: #dc3545;
+    /* Red */
+}
+
+/* Event List Popover (Simple implementation: just a list below or modal) */
+/* For now, we'll use the preview modal for single events, 
+   but for the day view we might need a small list if multiple events.
+   Let's reuse the event management list style but simpler. */
+
+.open-calendar-btn {
+    width: 100%;
+    margin-top: 10px;
+    background-color: #f1f2f6;
+    color: #2c3e50;
+    font-size: 0.9rem;
+    padding: 12px;
+    border-radius: 25px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    font-weight: 600;
+}
+
+.open-calendar-btn:hover {
+    transform: scale(1.02);
+    /* No background change as requested */
+}
+
+/* --- PILL ANIMATION REFINEMENTS --- */
+/* --- PILL ANIMATION REFINEMENTS --- */
+/* #status-pill transition definition removed here as it is now correctly defined in the main rule at the top */
+
+/* Widget container fade transition */
+.widget-container {
+    transition: opacity 0.3s ease;
+}
+
+/* Fix for expanded pill layout spacing */
+.events-expanded-list {
+    padding-top: 5px;
+    /* Reduced top padding */
+    padding-bottom: 5px;
+}
+
+.event-pill-day-group {
+    margin-bottom: 15px;
+}
+
+.event-pill-day-label {
+    font-size: 0.85rem;
+    font-weight: bold;
+    color: #888;
+    margin-bottom: 8px;
+    margin-left: 5px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Day Detail Modal Styles */
+.day-detail-modal {
+    max-width: 500px;
+    width: 90%;
+    border-radius: 25px;
+    padding: 20px;
+}
+
+.day-detail-content {
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.day-detail-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Reuse event-pill-item styles for day detail list but adjust slightly */
+.day-detail-item {
+    background-color: #f8f9fa;
+    border-radius: 16px;
+    padding: 15px;
+    text-align: left;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+    cursor: pointer;
+}
+
+.day-detail-item:hover {
+    /* transform: scale(1.02); Removed as requested */
+    /* background-color: #fff; Removed */
+    /* box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); Removed */
 }
