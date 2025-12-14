@@ -910,7 +910,10 @@ async function deleteEvent(eventId) {
 }
 
 // Get upcoming events within specified days
+// Get upcoming events within specified days
 async function getUpcomingEvents(daysAhead = 7) {
+    const CACHE_KEY = 'cached_upcoming_events';
+
     try {
         const now = new Date();
         const todayStr = formatDateForStorage(now);
@@ -921,6 +924,13 @@ async function getUpcomingEvents(daysAhead = 7) {
 
         console.log(`Fetching events from ${todayStr} to ${futureDateStr}`);
 
+        // Check offline status first
+        if (!navigator.onLine) {
+            console.log('Offline detected, using cache');
+            throw new Error('Offline');
+        }
+
+        // Try to fetch from Firebase
         const snapshot = await db.collection('events')
             .where('date', '>=', todayStr)
             .where('date', '<=', futureDateStr)
@@ -943,18 +953,43 @@ async function getUpcomingEvents(daysAhead = 7) {
         });
 
         console.log(`Found ${events.length} events:`, events);
+
+        // Save to cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify(events));
+
         return events;
     } catch (error) {
-        console.error('Error getting events:', error);
+        console.error('Error getting events (offline mode?):', error);
+
+        // Try to load from cache
+        try {
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                console.log('Returning cached events');
+                return JSON.parse(cachedData);
+            }
+        } catch (cacheError) {
+            console.error('Error reading cache:', cacheError);
+        }
+
         return [];
     }
 }
 
 // Get all events (for management view)
+// Get all events (for management view)
 async function getAllEvents() {
+    const CACHE_KEY = 'cached_all_events';
+
     try {
         const now = new Date();
         const todayStr = formatDateForStorage(now);
+
+        // Check offline status first
+        if (!navigator.onLine) {
+            console.log('Offline detected, using cache for all events');
+            throw new Error('Offline');
+        }
 
         const snapshot = await db.collection('events')
             .where('date', '>=', todayStr)
@@ -976,9 +1011,24 @@ async function getAllEvents() {
             return a.timeSlot.localeCompare(b.timeSlot);
         });
 
+        // Save to cache
+        localStorage.setItem(CACHE_KEY, JSON.stringify(events));
+
         return events;
     } catch (error) {
         console.error('Error getting all events:', error);
+
+        // Try to load from cache
+        try {
+            const cachedData = localStorage.getItem(CACHE_KEY);
+            if (cachedData) {
+                console.log('Returning cached all events');
+                return JSON.parse(cachedData);
+            }
+        } catch (cacheError) {
+            console.error('Error reading cache:', cacheError);
+        }
+
         return [];
     }
 }
@@ -1519,7 +1569,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 // 6. Animate to target
                 // Enable transition explicitly for the animation
-                statusPill.style.transition = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1), height 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                statusPill.style.transition = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1), height 0.6s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
                 statusPill.style.width = targetWidth + 'px';
                 statusPill.style.height = targetHeight + 'px';
                 statusPill.style.borderRadius = targetBorderRadius;
@@ -1589,8 +1639,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 if (currentWidgetIndex === 0) {
                     statusPill.classList.add('sync-view');
+                    statusPill.classList.remove('schedule-view');
+                } else if (currentWidgetIndex === 1) {
+                    statusPill.classList.remove('sync-view');
+                    statusPill.classList.add('schedule-view');
                 } else {
                     statusPill.classList.remove('sync-view');
+                    statusPill.classList.remove('schedule-view');
                 }
 
                 if (currentWidgetIndex === 2) {
@@ -1603,6 +1658,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusPill.style.maxWidth = '';
                 statusPill.style.maxHeight = '';
                 statusPill.style.minHeight = ''; // Clear min-height to allow CSS min-height (50px) to apply
+                statusPill.style.minWidth = ''; // Clear min-width to allow CSS min-width to apply
                 statusPill.style.width = 'auto';
                 statusPill.style.height = 'auto';
                 statusPill.style.borderRadius = '';
@@ -1624,12 +1680,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusPill.style.maxWidth = 'none';
                 statusPill.style.maxHeight = 'none';
                 statusPill.style.minHeight = '0'; // Re-lock min-height for animation
+                statusPill.style.minWidth = '0'; // Re-lock min-width for animation
 
                 // Force reflow
                 statusPill.offsetHeight;
 
                 // 6. Animate to target
-                statusPill.style.transition = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1), height 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+                statusPill.style.transition = 'width 0.6s cubic-bezier(0.16, 1, 0.3, 1), height 0.6s cubic-bezier(0.16, 1, 0.3, 1), min-width 0.6s cubic-bezier(0.16, 1, 0.3, 1), border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
                 statusPill.style.width = targetWidth + 'px';
                 statusPill.style.height = targetHeight + 'px';
                 statusPill.style.borderRadius = targetBorderRadius;
@@ -1651,6 +1708,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     statusPill.style.maxWidth = '';
                     statusPill.style.maxHeight = '';
                     statusPill.style.minHeight = '';
+                    statusPill.style.minWidth = '';
 
                     // Force reflow to apply these changes instantly without animation
                     statusPill.offsetHeight;
@@ -1670,8 +1728,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const isScheduleVisible = scheduleWidget.dataset.visible === 'true';
         const isScheduleEnabled = localStorage.getItem('showSchedule') !== 'false';
 
-        // 1. Dissolvi SOLO il contenuto (widgetContainer), la pillola resta visibile
-        widgetContainer.style.opacity = '0';
+        // 1. Dissolvi l'intera pillola (non solo il contenuto)
+        statusPill.style.transition = 'opacity 0.3s ease';
+        statusPill.style.opacity = '0';
 
         // 2. Attendi la fine della dissolvenza per cambiare il contenuto
         setTimeout(() => {
@@ -1704,8 +1763,13 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (nextWidgetIndex === 0) {
                 statusPill.classList.add('sync-view');
+                statusPill.classList.remove('schedule-view');
+            } else if (nextWidgetIndex === 1) {
+                statusPill.classList.remove('sync-view');
+                statusPill.classList.add('schedule-view');
             } else {
                 statusPill.classList.remove('sync-view');
+                statusPill.classList.remove('schedule-view');
             }
 
             // Update events widget if it's being shown
@@ -1715,13 +1779,24 @@ document.addEventListener('DOMContentLoaded', function () {
 
             currentWidgetIndex = nextWidgetIndex;
 
-            // 3. Fai riapparire il contenuto
-            widgetContainer.style.opacity = '1';
+            // 3. Fai riapparire la pillola
+            statusPill.style.opacity = '1';
 
-        }, 300); // Tempo per la dissolvenza del contenuto
+            // Opzionale: rimuovi la transizione dopo che è riapparsa per non interferire con altre animazioni (es. hover/click)
+            // Ma per ora lasciamola, potrebbe servire. Se da problemi con l'espansione, la rimuoviamo nel timeout.
+            setTimeout(() => {
+                statusPill.style.transition = '';
+            }, 300);
+
+        }, 300); // Tempo per la dissolvenza
 
 
     }, 30000);
+
+    // Periodic update for events (every 60s) to retry fetching if connection was lost
+    setInterval(() => {
+        updateEventsWidget();
+    }, 60000);
 
     // Caricamento Impostazioni
     const savedFont = localStorage.getItem('clockFont') || 'Montserrat';
@@ -2530,4 +2605,34 @@ document.addEventListener('DOMContentLoaded', function () {
             updateSyncStatus(`Ultimo aggiornamento: ${timeSinceSync}s fa${offsetText} `, timeSinceSync > 900);
         }
     }, 5000);
+
+    // Offline handling
+    function updateOfflineStatus() {
+        const isOffline = !navigator.onLine;
+        const offlineBadge = document.getElementById('offlineBadge');
+        const editEventsBtn = document.getElementById('editEventsBtn');
+        const forceSyncBtn = document.getElementById('forceSync');
+
+        if (offlineBadge) {
+            offlineBadge.style.display = isOffline ? 'inline-block' : 'none';
+        }
+
+        if (editEventsBtn) {
+            editEventsBtn.disabled = isOffline;
+            editEventsBtn.style.opacity = isOffline ? '0.5' : '1';
+            editEventsBtn.style.cursor = isOffline ? 'not-allowed' : 'pointer';
+        }
+
+        if (forceSyncBtn) {
+            forceSyncBtn.disabled = isOffline;
+            forceSyncBtn.style.opacity = isOffline ? '0.5' : '1';
+            forceSyncBtn.style.cursor = isOffline ? 'not-allowed' : 'pointer';
+        }
+    }
+
+    window.addEventListener('online', updateOfflineStatus);
+    window.addEventListener('offline', updateOfflineStatus);
+
+    // Initial check
+    updateOfflineStatus();
 });
