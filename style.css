@@ -425,6 +425,8 @@ button:hover {
         max-width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         max-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         min-height 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        min-width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+        width 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         border-radius 0.6s cubic-bezier(0.16, 1, 0.3, 1),
         background-color 0.3s ease,
         padding 0.5s ease;
@@ -450,6 +452,11 @@ button:hover {
     width: auto;
 }
 
+#status-pill.schedule-view {
+    /* Stato schedule: leggermente più largo per la barra percentuale */
+    min-width: 240px !important;
+}
+
 #sync-status {
     white-space: nowrap;
     text-align: center;
@@ -462,6 +469,7 @@ button:hover {
     justify-content: center;
     width: 100%;
     height: 100%;
+    transition: opacity 0.3s ease;
 }
 
 /* Modifica chiave: Rimuoviamo position:absolute per permettere al contenitore di adattarsi */
@@ -767,6 +775,17 @@ button:hover {
     padding: 15px 25px 25px 25px;
     /* Equalize right and bottom spacing (approx) */
     margin-top: 0;
+}
+
+.offline-badge {
+    font-size: 0.8rem;
+    background-color: #999;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    vertical-align: middle;
+    margin-left: 10px;
+    font-weight: normal;
 }
 
 #closeCalendarModal {
