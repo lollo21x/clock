@@ -27,6 +27,7 @@ let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
 // Event management variables
 let currentEditingEventId = null;
 let selectedVolunteers = [];
+let currentStudentCount = 0; // 0 means "?"
 
 // --- GESTIONE TEMI A EVENTO (MODULARE PER FUTURI EVENTI) ---
 const eventThemes = {
@@ -1035,7 +1036,7 @@ async function getAllEvents() {
 
 // Check for expired events and delete them immediately
 async function checkExpiredEvents() {
-    const now = new Date();
+    const now = new Date(Date.now() + serverTimeOffset);
     const todayStr = formatDateForStorage(now);
     const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -1129,14 +1130,32 @@ function formatDateForStorage(date) {
 // Format date for display with relative day labels
 function formatEventDisplay(event) {
     const eventDate = new Date(event.date + 'T00:00:00');
-    const now = new Date();
+    const now = new Date(Date.now() + serverTimeOffset);
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
     let dayLabel;
+
     if (eventDate.getTime() === today.getTime()) {
         dayLabel = 'oggi';
+
+        if (event.timeSlot) {
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const parts = event.timeSlot.split('-');
+            if (parts.length === 2) {
+                const startParts = parts[0].trim().split(':');
+                const endParts = parts[1].trim().split(':');
+                const startMinutes = parseInt(startParts[0]) * 60 + parseInt(startParts[1]);
+                const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
+
+                if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
+                    return `${event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica'} di ${event.subject.toLowerCase()} ora`;
+                } else if (currentMinutes >= startMinutes - 60 && currentMinutes < startMinutes) {
+                    return `${event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica'} di ${event.subject.toLowerCase()} la prossima ora`;
+                }
+            }
+        }
     } else if (eventDate.getTime() === tomorrow.getTime()) {
         dayLabel = 'domani';
     } else {
@@ -1178,19 +1197,49 @@ async function renderEventsList() {
         return;
     }
 
-    // Group events by day
-    const eventsByDay = {};
+    // Group events by date (unique day)
+    const eventsByDate = {};
     events.forEach(event => {
-        const dayLabel = getRelativeDayLabel(event.date);
-        if (!eventsByDay[dayLabel]) {
-            eventsByDay[dayLabel] = [];
+        if (!eventsByDate[event.date]) {
+            eventsByDate[event.date] = [];
         }
-        eventsByDay[dayLabel].push(event);
+        eventsByDate[event.date].push(event);
     });
+
+    // Helper to get display label
+    const getDisplayLabel = (dateStr) => {
+        const eventDate = new Date(dateStr + 'T00:00:00');
+        const now = new Date(Date.now() + serverTimeOffset);
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+
+        // Calculate difference in days
+        const diffTime = eventDate - today;
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (eventDate.getTime() === today.getTime()) {
+            return 'Oggi';
+        } else if (eventDate.getTime() === tomorrow.getTime()) {
+            return 'Domani';
+        } else {
+            const daysOfWeek = ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì', 'Giovedì', 'Venerdì', 'Sabato'];
+            const dayName = daysOfWeek[eventDate.getDay()];
+
+            if (diffDays < 7) {
+                return dayName;
+            } else {
+                const dateOptions = { day: 'numeric', month: 'long' };
+                return `${dayName} ${eventDate.toLocaleDateString('it-IT', dateOptions)}`;
+            }
+        }
+    };
 
     // Render grouped events
     eventsList.innerHTML = '';
-    Object.keys(eventsByDay).forEach(dayLabel => {
+    Object.keys(eventsByDate).sort().forEach(dateStr => {
+        const dayLabel = getDisplayLabel(dateStr);
+
         const dayGroup = document.createElement('div');
         dayGroup.className = 'event-day-group';
 
@@ -1199,15 +1248,24 @@ async function renderEventsList() {
         dayLabelEl.textContent = dayLabel;
         dayGroup.appendChild(dayLabelEl);
 
-        eventsByDay[dayLabel].forEach(event => {
+        eventsByDate[dateStr].forEach(event => {
             const eventItem = document.createElement('div');
             eventItem.className = 'event-item';
             eventItem.onclick = () => openEventForm(event.id, event);
 
+            let details = event.timeSlot;
+            if (event.type === 'interrogazione') {
+                if (event.volunteers && event.volunteers.length > 0) {
+                    details += ` • ${event.volunteers.length} volontari`;
+                } else if (event.studentCount > 0) {
+                    details += ` • ${event.studentCount} interrogati`;
+                }
+            }
+
             eventItem.innerHTML = `
                 <div class="event-item-type">${event.type}</div>
                 <div class="event-item-subject">${event.subject}</div>
-                <div class="event-item-details">${event.timeSlot}${event.volunteers && event.volunteers.length > 0 ? ` • ${event.volunteers.length} volontari` : ''}</div>
+                <div class="event-item-details">${details}</div>
         `;
 
             dayGroup.appendChild(eventItem);
@@ -1287,7 +1345,7 @@ async function updateExpandedEventsView() {
                     </div>
                     <div class="event-pill-item-details">
                         <i class="far fa-clock"></i> ${event.timeSlot}
-                        ${event.volunteers && event.volunteers.length > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.volunteers.length}</span>` : ''}
+                        ${event.volunteers && event.volunteers.length > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.volunteers.length}</span>` : (event.studentCount > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.studentCount}</span>` : '')}
                     </div>
                 </div>
             `;
@@ -1450,7 +1508,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v3.3';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v3.6';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub4d.lollo.dpdns.org');
@@ -1841,6 +1899,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const modal = document.getElementById('eventPreviewModal');
         if (!modal) return;
 
+        // Ensure studentCount is available (might be missing in old events)
+        const studentCount = event.studentCount || 0;
+
         document.getElementById('previewSubject').textContent = event.subject;
 
         // Set Chip
@@ -1891,15 +1952,22 @@ document.addEventListener('DOMContentLoaded', function () {
         const volunteersSection = document.getElementById('previewVolunteersSection');
         const volunteersList = document.getElementById('previewVolunteersList');
 
-        if (event.type === 'interrogazione' && event.volunteers && event.volunteers.length > 0) {
-            volunteersSection.style.display = 'block';
-            volunteersList.innerHTML = '';
-            event.volunteers.forEach(volunteer => {
-                const li = document.createElement('li');
-                li.className = 'preview-volunteer-item';
-                li.textContent = volunteer;
-                volunteersList.appendChild(li);
-            });
+        if (event.type === 'interrogazione') {
+            if (event.volunteers && event.volunteers.length > 0) {
+                volunteersSection.style.display = 'block';
+                volunteersList.innerHTML = '';
+                event.volunteers.forEach(volunteer => {
+                    const li = document.createElement('li');
+                    li.className = 'preview-volunteer-item';
+                    li.textContent = volunteer;
+                    volunteersList.appendChild(li);
+                });
+            } else if (studentCount > 0) {
+                volunteersSection.style.display = 'block';
+                volunteersList.innerHTML = `<li class="preview-volunteer-item" style="font-style: italic;">${studentCount} interrogati (nomi non specificati)</li>`;
+            } else {
+                volunteersSection.style.display = 'none';
+            }
         } else {
             volunteersSection.style.display = 'none';
         }
@@ -2131,7 +2199,8 @@ document.addEventListener('DOMContentLoaded', function () {
                     subject: event.subject,
                     date: event.date,
                     timeSlot: event.timeSlot,
-                    volunteers: event.volunteers || []
+                    volunteers: event.volunteers || [],
+                    studentCount: event.studentCount || 0
                 }, 'dayDetail');
             };
 
@@ -2142,7 +2211,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 <div class="event-pill-item-details">
                     <i class="far fa-clock"></i> ${event.timeSlot}
-                    ${event.volunteers && event.volunteers.length > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.volunteers.length}</span>` : ''}
+                    ${event.volunteers && event.volunteers.length > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.volunteers.length}</span>` : (event.studentCount > 0 ? `<span style="margin-left: 8px; font-size: 0.8rem;"><i class="fas fa-user-friends"></i> ${event.studentCount}</span>` : '')}
                 </div>
             `;
 
@@ -2317,6 +2386,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const volunteersModal = document.getElementById('volunteersModal');
     const cancelVolunteers = document.getElementById('cancelVolunteers');
     const confirmVolunteers = document.getElementById('confirmVolunteers');
+    const randomVolunteersBtn = document.getElementById('randomVolunteersBtn');
+
+    // Student Counter Elements
+    const decreaseStudentsBtn = document.getElementById('decreaseStudentsBtn');
+    const increaseStudentsBtn = document.getElementById('increaseStudentsBtn');
+    const studentCountDisplay = document.getElementById('studentCountDisplay');
+
+    // Counter Logic
+    function updateStudentCountDisplay() {
+        if (currentStudentCount === 0) {
+            studentCountDisplay.textContent = '?';
+            selectVolunteersBtn.style.display = 'none';
+            selectedVolunteersList.style.display = 'none';
+            // Reset volunteers if count goes to 0/undefined
+            selectedVolunteers = [];
+            updateSelectedVolunteersDisplay();
+        } else {
+            studentCountDisplay.textContent = currentStudentCount;
+            selectVolunteersBtn.style.display = 'block';
+            selectedVolunteersList.style.display = 'block';
+
+            // If count reduced below selected volunteers, trim list
+            if (selectedVolunteers.length > currentStudentCount) {
+                selectedVolunteers = selectedVolunteers.slice(0, currentStudentCount);
+                updateSelectedVolunteersDisplay();
+            }
+        }
+    }
+
+    if (decreaseStudentsBtn) {
+        decreaseStudentsBtn.addEventListener('click', () => {
+            if (currentStudentCount > 0) {
+                currentStudentCount--;
+                updateStudentCountDisplay();
+            }
+        });
+    }
+
+    if (increaseStudentsBtn) {
+        increaseStudentsBtn.addEventListener('click', () => {
+            currentStudentCount++;
+            updateStudentCountDisplay();
+        });
+    }
 
     // Open passcode modal when clicking "Modifica eventi"
     if (editEventsBtn) {
@@ -2394,6 +2507,7 @@ document.addEventListener('DOMContentLoaded', function () {
     function openEventForm(eventId = null, eventData = null) {
         currentEditingEventId = eventId;
         selectedVolunteers = [];
+        currentStudentCount = 0;
 
         if (eventId && eventData) {
             // Edit mode
@@ -2416,6 +2530,8 @@ document.addEventListener('DOMContentLoaded', function () {
             if (eventData.type === 'interrogazione') {
                 volunteersGroup.style.display = 'block';
                 selectedVolunteers = eventData.volunteers || [];
+                currentStudentCount = eventData.studentCount || (selectedVolunteers.length > 0 ? selectedVolunteers.length : 0);
+                updateStudentCountDisplay();
                 updateSelectedVolunteersDisplay();
             } else {
                 volunteersGroup.style.display = 'none';
@@ -2439,6 +2555,8 @@ document.addEventListener('DOMContentLoaded', function () {
             eventTimeSlot.value = '';
             volunteersGroup.style.display = 'block';
             selectedVolunteers = [];
+            currentStudentCount = 0;
+            updateStudentCountDisplay();
             updateSelectedVolunteersDisplay();
         }
 
@@ -2478,9 +2596,58 @@ document.addEventListener('DOMContentLoaded', function () {
             closeModal(eventFormModal);
             setTimeout(() => {
                 openModal(volunteersModal);
+                validateVolunteersSelection(); // Initial check
             }, 400);
         });
     }
+
+    // Random Selection Logic
+    if (randomVolunteersBtn) {
+        randomVolunteersBtn.addEventListener('click', () => {
+            if (currentStudentCount <= 0) return;
+
+            const checkboxes = Array.from(volunteersModal.querySelectorAll('input[type="checkbox"]'));
+
+            // Reset all
+            checkboxes.forEach(cb => cb.checked = false);
+
+            // Randomly select N
+            const shuffled = checkboxes.sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, currentStudentCount);
+
+            selected.forEach(cb => cb.checked = true);
+
+            validateVolunteersSelection();
+        });
+    }
+
+    // Validate selection in modal
+    function validateVolunteersSelection() {
+        if (!confirmVolunteers) return;
+
+        const checkedCount = volunteersModal.querySelectorAll('input[type="checkbox"]:checked').length;
+
+        // Enable if count matches target OR count is 0 (user chose not to select names)
+        // User said: "i volontari che potrò scegliere saranno massimo del numero designato e minimo dello stesso"
+        // AND "o anche non sceglierli"
+        // So: checkedCount === currentStudentCount OR checkedCount === 0
+
+        if (checkedCount === currentStudentCount || checkedCount === 0) {
+            confirmVolunteers.disabled = false;
+            confirmVolunteers.style.opacity = '1';
+            confirmVolunteers.style.cursor = 'pointer';
+        } else {
+            confirmVolunteers.disabled = true;
+            confirmVolunteers.style.opacity = '0.5';
+            confirmVolunteers.style.cursor = 'not-allowed';
+        }
+    }
+
+    // Add change listener to checkboxes for validation
+    const volunteerCheckboxes = volunteersModal.querySelectorAll('input[type="checkbox"]');
+    volunteerCheckboxes.forEach(cb => {
+        cb.addEventListener('change', validateVolunteersSelection);
+    });
 
     // Confirm volunteers selection
     if (confirmVolunteers) {
@@ -2552,8 +2719,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 type: selectedType,
                 subject: subject,
                 date: date,
+                date: date,
                 timeSlot: timeSlot,
-                volunteers: selectedType === 'interrogazione' ? selectedVolunteers : []
+                volunteers: selectedType === 'interrogazione' ? selectedVolunteers : [],
+                studentCount: selectedType === 'interrogazione' ? currentStudentCount : 0
             };
 
             // Save to Firebase
