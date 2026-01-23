@@ -80,7 +80,7 @@
     <div id="eventsCalendarIcon" class="icon-button">
         <i class="fas fa-calendar-alt"></i>
     </div>
-    <div id="calendarIcon" class="icon-button">
+    <div id="calendarIcon" class="icon-button" style="display: none;">
         <i class="fas fa-tree"></i>
     </div>
     <div id="settingsIcon" class="icon-button">
@@ -329,8 +329,15 @@
                 </select>
             </div>
             <div class="form-group" id="volunteersGroup" style="display: none;">
-                <label>Volontari</label>
-                <button type="button" id="selectVolunteersBtn" class="select-volunteers-btn">
+                <label>Numero interrogati</label>
+                <div class="student-counter-container">
+                    <button type="button" id="decreaseStudentsBtn" class="counter-btn"><i
+                            class="fas fa-minus"></i></button>
+                    <span id="studentCountDisplay" class="counter-display">?</span>
+                    <button type="button" id="increaseStudentsBtn" class="counter-btn"><i
+                            class="fas fa-plus"></i></button>
+                </div>
+                <button type="button" id="selectVolunteersBtn" class="select-volunteers-btn" style="display: none;">
                     Seleziona volontari...
                 </button>
                 <div id="selectedVolunteersList" class="selected-volunteers"></div>
@@ -443,7 +450,10 @@
         </div>
         <div class="modal-footer">
             <button id="cancelVolunteers">Annulla</button>
-            <button id="confirmVolunteers">Conferma</button>
+            <div style="display: flex; gap: 5px;">
+                <button id="randomVolunteersBtn" class="random-btn">Casuale</button>
+                <button id="confirmVolunteers">Conferma</button>
+            </div>
         </div>
     </div>
 
