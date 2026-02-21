@@ -29,6 +29,31 @@ let currentEditingEventId = null;
 let selectedVolunteers = [];
 let currentStudentCount = 0; // 0 means "?"
 
+// Subject icon mapping (Font Awesome)
+const subjectIcons = {
+    'Arte': 'fas fa-palette',
+    'Fisica': 'fas fa-atom',
+    'Filosofia': 'fa-solid fa-yin-yang',
+    'Ginnastica': 'fas fa-running',
+    'Informatica': 'fas fa-code',
+    'Inglese': 'fa-solid fa-language',
+    'Italiano': 'fas fa-book-open',
+    'Matematica': 'fas fa-square-root-alt',
+    'Religione': 'fas fa-cross',
+    'Scienze': 'fa-solid fa-flask',
+    'Storia': 'fas fa-landmark'
+};
+
+function getSubjectIcon(subject) {
+    const iconClass = subjectIcons[subject];
+    return iconClass ? `<i class="${iconClass}" style="margin-right: 5px; opacity: 0.7;"></i>` : '';
+}
+
+function getSubjectIconSmall(subject) {
+    const iconClass = subjectIcons[subject];
+    return iconClass ? `<i class="${iconClass}" style="margin-right: 4px; opacity: 0.6; font-size: 0.85em;"></i>` : '';
+}
+
 // --- GESTIONE TEMI A EVENTO (MODULARE PER FUTURI EVENTI) ---
 const eventThemes = {
     natale: {
@@ -1150,9 +1175,11 @@ function formatEventDisplay(event) {
                 const endMinutes = parseInt(endParts[0]) * 60 + parseInt(endParts[1]);
 
                 if (currentMinutes >= startMinutes && currentMinutes < endMinutes) {
-                    return `${event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica'} di ${event.subject.toLowerCase()} ora`;
+                    const typeLabelStr = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica');
+                    return `${typeLabelStr} di ${event.subject.toLowerCase()} ora`;
                 } else if (currentMinutes >= startMinutes - 60 && currentMinutes < startMinutes) {
-                    return `${event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica'} di ${event.subject.toLowerCase()} la prossima ora`;
+                    const typeLabelStr = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica');
+                    return `${typeLabelStr} di ${event.subject.toLowerCase()} la prossima ora`;
                 }
             }
         }
@@ -1163,7 +1190,7 @@ function formatEventDisplay(event) {
         dayLabel = daysOfWeek[eventDate.getDay()];
     }
 
-    const typeLabel = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+    const typeLabel = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica');
     return `${typeLabel} di ${event.subject.toLowerCase()} ${dayLabel}`;
 }
 
@@ -1263,8 +1290,8 @@ async function renderEventsList() {
             }
 
             eventItem.innerHTML = `
-                <div class="event-item-type">${event.type}</div>
-                <div class="event-item-subject">${event.subject}</div>
+                <div class="event-item-type">${event.type === 'verifica' && event.subject === 'Italiano' ? 'Tema' : event.type}</div>
+                <div class="event-item-subject">${getSubjectIcon(event.subject)}${event.subject}</div>
                 <div class="event-item-details">${details}</div>
         `;
 
@@ -1335,12 +1362,12 @@ async function updateExpandedEventsView() {
         html += `<div class="event-pill-day-label">${dayLabel}</div>`;
         eventsByDay[dayLabel].forEach(event => {
             const typeClass = event.type === 'interrogazione' ? 'type-interrogazione' : 'type-verifica';
-            const typeLabel = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+            const typeLabel = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Int' : 'Ver');
 
             html += `
                 <div class="event-pill-item ${typeClass}" style="animation-delay: ${animationDelay}s" onclick="window.openEventPreview({id: '${event.id}', type: '${event.type}', subject: '${event.subject}', date: '${event.date}', timeSlot: '${event.timeSlot}', volunteers: ${JSON.stringify(event.volunteers || []).replace(/"/g, '&quot;')}})">
                     <div class="event-pill-item-header">
-                        <div class="event-pill-item-subject">${event.subject}</div>
+                        <div class="event-pill-item-subject">${getSubjectIconSmall(event.subject)}${event.subject}</div>
                         <div class="event-pill-item-type-badge">${typeLabel}</div>
                     </div>
                     <div class="event-pill-item-details">
@@ -1355,7 +1382,7 @@ async function updateExpandedEventsView() {
     });
 
     // Add Calendar Button
-    html += `<button class="open-calendar-btn" onclick="window.openMonthCalendar()">Apri calendario</button>`;
+    html += `<button class="open-calendar-btn" onclick="window.openMonthCalendar()"><i class="fas fa-calendar-alt"></i> Apri calendario</button>`;
 
     html += '</div>';
 
@@ -1508,7 +1535,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v3.6';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v4.1';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub4d.lollo.dpdns.org');
@@ -1779,8 +1806,11 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     setInterval(() => {
-        // Don't cycle if pill is expanded
-        if (isPillExpanded) return;
+        // If pill is expanded, close it by simulating a click outside
+        if (isPillExpanded) {
+            document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+            return;
+        }
 
         const widgets = [syncWidget, scheduleWidget, eventsWidget];
         const isScheduleVisible = scheduleWidget.dataset.visible === 'true';
@@ -1819,6 +1849,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             });
 
+            // Remove old color classes first
+
             if (nextWidgetIndex === 0) {
                 statusPill.classList.add('sync-view');
                 statusPill.classList.remove('schedule-view');
@@ -1826,8 +1858,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 statusPill.classList.remove('sync-view');
                 statusPill.classList.add('schedule-view');
             } else {
-                statusPill.classList.remove('sync-view');
-                statusPill.classList.remove('schedule-view');
+                statusPill.classList.remove('sync-view', 'schedule-view');
             }
 
             // Update events widget if it's being shown
@@ -1840,8 +1871,7 @@ document.addEventListener('DOMContentLoaded', function () {
             // 3. Fai riapparire la pillola
             statusPill.style.opacity = '1';
 
-            // Opzionale: rimuovi la transizione dopo che è riapparsa per non interferire con altre animazioni (es. hover/click)
-            // Ma per ora lasciamola, potrebbe servire. Se da problemi con l'espansione, la rimuoviamo nel timeout.
+            // Opzionale: rimuovi la transizione dopo che è riapparsa per non interferire con altre animazioni
             setTimeout(() => {
                 statusPill.style.transition = '';
             }, 300);
@@ -1895,6 +1925,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Function to open event preview modal
     window.openEventPreview = function (event, source = 'pill') {
+        window.currentPreviewEvent = event;
         previewSource = source;
         const modal = document.getElementById('eventPreviewModal');
         if (!modal) return;
@@ -1902,11 +1933,12 @@ document.addEventListener('DOMContentLoaded', function () {
         // Ensure studentCount is available (might be missing in old events)
         const studentCount = event.studentCount || 0;
 
-        document.getElementById('previewSubject').textContent = event.subject;
+        document.getElementById('previewSubject').innerHTML = getSubjectIcon(event.subject) + event.subject;
 
         // Set Chip
         const chip = document.getElementById('previewTypeChip');
-        chip.textContent = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+        const typeLabelPreview = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica');
+        chip.textContent = typeLabelPreview;
         chip.className = 'preview-type-chip ' + (event.type === 'interrogazione' ? 'interrogazione' : 'verifica');
 
         // Countdown Logic
@@ -2007,56 +2039,25 @@ document.addEventListener('DOMContentLoaded', function () {
     async function changeMonth(offset) {
         const grid = document.getElementById('monthCalendarGrid');
         const title = document.getElementById('calendarMonthYear');
-        const calendarBody = document.querySelector('.calendar-body'); // Get container to lock height
 
         // Add transition if not present
         if (!grid.style.transition) grid.style.transition = 'opacity 0.2s ease';
         if (!title.style.transition) title.style.transition = 'opacity 0.2s ease';
-        // Add height transition to body
-        if (!calendarBody.style.transition) calendarBody.style.transition = 'height 0.2s ease';
 
-        // 1. Lock current height
-        const oldHeight = calendarBody.offsetHeight;
-        calendarBody.style.height = oldHeight + 'px';
-        calendarBody.style.overflow = 'hidden'; // Prevent scrollbar jump
-
-        // 2. Fade out
+        // 1. Fade out
         grid.style.opacity = '0';
         title.style.opacity = '0';
 
         // Wait for fade out
         await new Promise(r => setTimeout(r, 200));
 
-        // 3. Update date and render (invisible but takes up space)
+        // 2. Update date and render
         currentCalendarDate.setMonth(currentCalendarDate.getMonth() + offset);
         await renderMonthCalendar();
 
-        // 4. Measure new height
-        // Temporarily unlock height to measure natural height
-        calendarBody.style.height = 'auto';
-        const newHeight = calendarBody.offsetHeight;
-        // Re-lock to old height immediately
-        calendarBody.style.height = oldHeight + 'px';
-
-        // Force reflow
-        calendarBody.offsetHeight;
-
-        // 5. Animate to new height using requestAnimationFrame for robustness
-        requestAnimationFrame(() => {
-            calendarBody.style.height = newHeight + 'px';
-        });
-
-        // 6. Fade in
+        // 3. Fade in
         grid.style.opacity = '1';
         title.style.opacity = '1';
-
-        // 7. Unlock height after transition
-        // Wait slightly longer than transition to be safe
-        setTimeout(() => {
-            calendarBody.style.height = '';
-            calendarBody.style.overflow = '';
-            calendarBody.style.transition = ''; // Clean up transition
-        }, 250);
     }
 
     if (prevMonthBtn) {
@@ -2186,7 +2187,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
 
         events.forEach(event => {
-            const typeLabel = event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica';
+            const typeLabel = (event.type === 'verifica' && event.subject === 'Italiano') ? 'Tema' : (event.type === 'interrogazione' ? 'Interrogazione' : 'Verifica');
             const typeClass = event.type === 'interrogazione' ? 'type-interrogazione' : 'type-verifica';
 
             const item = document.createElement('div');
@@ -2206,7 +2207,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
             item.innerHTML = `
                 <div class="event-pill-item-header">
-                    <div class="event-pill-item-subject">${event.subject}</div>
+                    <div class="event-pill-item-subject">${getSubjectIcon(event.subject)}${event.subject}</div>
                     <div class="event-pill-item-type-badge">${typeLabel}</div>
                 </div>
                 <div class="event-pill-item-details">
@@ -2274,6 +2275,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (closeScheduleModal) closeScheduleModal.addEventListener('click', () => closeModal(scheduleModal));
     if (closeInfoModal) closeInfoModal.addEventListener('click', () => closeModal(infoModal));
+
+    const editFromPreviewBtn = document.getElementById('editFromPreviewBtn');
+    if (editFromPreviewBtn) {
+        editFromPreviewBtn.addEventListener('click', () => {
+            closeModal(eventPreviewModal, previewSource === 'dayDetail');
+            setTimeout(() => {
+                if (window.currentPreviewEvent) {
+                    openEventForm(window.currentPreviewEvent.id, window.currentPreviewEvent);
+                }
+            }, 400);
+        });
+    }
+
     overlay.addEventListener('click', () => {
         if (settingsModal.style.display === 'block') closeModal(settingsModal);
         else if (infoModal.style.display === 'block') closeModal(infoModal);
@@ -2360,7 +2374,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // --- EVENT MANAGEMENT MODAL HANDLERS ---
 
-    const editEventsBtn = document.getElementById('editEventsBtn');
+    const editEventsBtn = document.getElementById('editEventsMainIcon');
     const passcodeModal = document.getElementById('passcodeModal');
     const passcodeInput = document.getElementById('passcodeInput');
     const passcodeError = document.getElementById('passcodeError');
@@ -2379,6 +2393,15 @@ document.addEventListener('DOMContentLoaded', function () {
     const eventTimeSlot = document.getElementById('eventTimeSlot');
     const volunteersGroup = document.getElementById('volunteersGroup');
     const selectVolunteersBtn = document.getElementById('selectVolunteersBtn');
+
+    if (eventSubject) {
+        eventSubject.addEventListener('change', (e) => {
+            const verificaOption = document.querySelector('.type-option[data-type="verifica"]');
+            if (verificaOption) {
+                verificaOption.textContent = e.target.value === 'Italiano' ? 'Tema' : 'Verifica';
+            }
+        });
+    }
     const selectedVolunteersList = document.getElementById('selectedVolunteersList');
     const saveEventBtn = document.getElementById('saveEventBtn');
     const deleteEventBtn = document.getElementById('deleteEventBtn');
@@ -2511,7 +2534,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (eventId && eventData) {
             // Edit mode
-            eventFormTitle.textContent = 'Modifica Evento';
+            eventFormTitle.textContent = 'Modifica evento';
             deleteEventBtn.style.display = 'block';
 
             // Set form values
@@ -2524,6 +2547,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             eventSubject.value = eventData.subject || '';
+            if (eventSubject) {
+                const eventObj = new Event('change');
+                eventSubject.dispatchEvent(eventObj);
+            }
             eventDate.value = eventData.date || '';
             eventTimeSlot.value = eventData.timeSlot || '';
 
@@ -2551,6 +2578,10 @@ document.addEventListener('DOMContentLoaded', function () {
             });
 
             eventSubject.value = '';
+            if (eventSubject) {
+                const eventObj = new Event('change');
+                eventSubject.dispatchEvent(eventObj);
+            }
             eventDate.value = '';
             eventTimeSlot.value = '';
             volunteersGroup.style.display = 'block';
@@ -2743,18 +2774,14 @@ document.addEventListener('DOMContentLoaded', function () {
     // Delete event
     if (deleteEventBtn) {
         deleteEventBtn.addEventListener('click', async () => {
-            if (confirm('Sei sicuro di voler eliminare questo evento?')) {
-                const success = await deleteEvent(currentEditingEventId);
+            const success = await deleteEvent(currentEditingEventId);
 
-                if (success) {
-                    closeModal(eventFormModal);
-                    setTimeout(async () => {
-                        await openEventManagementModal();
-                        updateEventsWidget(); // Refresh pill display
-                    }, 400);
-                } else {
-                    alert('Errore durante l\'eliminazione dell\'evento. Riprova.');
-                }
+            if (success) {
+                closeModal(eventFormModal);
+                setTimeout(async () => {
+                    await openEventManagementModal();
+                    updateEventsWidget(); // Refresh pill display
+                }, 400);
             }
         });
     }
