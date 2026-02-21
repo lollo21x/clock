@@ -141,22 +141,27 @@ body {
 }
 
 #githubIcon {
-    right: 260px;
+    right: 320px;
     background-color: #333;
 }
 
 #calendarIcon {
-    right: 260px;
+    right: 320px;
     background-color: #1b912b;
 }
 
 #eventsCalendarIcon {
-    right: 200px;
+    right: 260px;
     background-color: #1b912b;
 }
 
 #backIcon {
     left: 20px;
+    background-color: #1b912b;
+}
+
+#editEventsMainIcon {
+    right: 200px;
     background-color: #1b912b;
 }
 
@@ -559,6 +564,7 @@ button:hover {
     #githubIcon,
     #settingsIcon,
     #scheduleIcon,
+    #editEventsMainIcon,
     #status-pill {
         display: none;
     }
@@ -1217,7 +1223,8 @@ button:hover {
     padding: 15px;
     text-align: left;
     transition: transform 0.2s ease, background-color 0.2s ease;
-    /* Removed border-left and box-shadow as requested */
+    /* Reduced min-width slightly for a more compact expanded look */
+    min-width: 220px;
 
     /* Animation for staggered entry */
     opacity: 0;
@@ -1504,6 +1511,7 @@ button:hover {
 
 .calendar-body {
     padding: 15px;
+    overflow-x: auto;
 }
 
 .calendar-weekdays {
@@ -1514,16 +1522,19 @@ button:hover {
     color: #666;
     margin-bottom: 10px;
     font-size: 0.9rem;
+    min-width: 450px;
 }
 
 .month-calendar-grid {
     display: grid;
     grid-template-columns: repeat(7, 1fr);
     gap: 8px;
+    min-width: 450px;
 }
 
 .calendar-day-cell {
-    aspect-ratio: 1;
+    /* Responsive height that shrinks on smaller windows but stays around square on normal ones */
+    height: clamp(40px, 9vh, 75px);
     background-color: #f8f9fa;
     border-radius: 12px;
     display: flex;
