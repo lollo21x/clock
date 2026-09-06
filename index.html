@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Clock" />
     <link rel="manifest" href="icons/site.webmanifest" />
-    <link rel="stylesheet" href="style.css?v=3.0">
+    <link rel="stylesheet" href="style.css?v=3.1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
@@ -44,6 +44,12 @@
 </head>
 
 <body>
+    <div id="bg-animation" aria-hidden="true">
+        <div class="bg-wash"></div>
+        <div class="bg-orb bg-orb-a"></div>
+        <div class="bg-orb bg-orb-b"></div>
+        <div class="bg-orb bg-orb-c"></div>
+    </div>
     <script>
         (function () {
             try {
@@ -52,7 +58,11 @@
                     document.body.style.backgroundColor = '#000000'; // Dark background for Stranger Things
                 } else if (savedBackground === 'natale') {
                     document.body.style.backgroundColor = '#c0392b'; // Red background for Christmas
-                } else if (savedBackground && savedBackground !== 'automatico') {
+                } else if (savedBackground === 'automatico') {
+                    // AUTOMATIC_BACKGROUND_ENABLED = false in script.js — fallback grigio.
+                    // Per riabilitare lo sfondo automatico: imposta quel flag a true e togli questo fallback.
+                    document.body.style.backgroundColor = '#D4D4D4';
+                } else if (savedBackground) {
                     document.body.style.backgroundColor = savedBackground;
                 }
             } catch (e) {
@@ -74,6 +84,12 @@
     <div id="backIcon" class="icon-button">
         <i class="fas fa-arrow-left"></i>
     </div>
+    <!--
+      PULSANTE ORARIO SCOLASTICO — disabilitato temporaneamente.
+      Flag: SCHEDULE_BUTTON_ENABLED in script.js
+      Per tornare allo stato originale: imposta quel flag a true.
+      Non rimuovere questo pulsante: tabella, widget e logica restano nel codice.
+    -->
     <div id="scheduleIcon" class="icon-button">
         <i class="fas fa-table"></i>
     </div>
@@ -120,6 +136,12 @@
             <div class="settings-section">
                 <h4>Sfondo</h4>
                 <select id="backgroundSelect">
+                    <!--
+                      Sfondo Automatico — disabilitato temporaneamente.
+                      Flag: AUTOMATIC_BACKGROUND_ENABLED in script.js
+                      Per tornare allo stato originale: imposta quel flag a true.
+                      La logica per materia/orario resta nel codice.
+                    -->
                     <option value="automatico">Automatico</option>
                     <option value="#D4D4D4">Grigio</option>
                     <option value="#FAD2E3">Rosa</option>
@@ -131,6 +153,13 @@
                     <option value="natale">TEMA - Natale</option>
                     <option value="stranger_things">TEMA - Stranger Things</option>
                 </select>
+                <div class="toggle-container" id="animateBackgroundRow">
+                    <span class="toggle-label">Anima lo sfondo</span>
+                    <label class="toggle" for="animateBackgroundToggle">
+                        <input type="checkbox" id="animateBackgroundToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
             <div class="settings-section">
                 <h4>Avanzate</h4>
@@ -527,7 +556,7 @@
             </div>
         </div>
 
-        <script src="script.js?v=4.0"></script>
+        <script src="script.js?v=4.2"></script>
 </body>
 
 </html>
