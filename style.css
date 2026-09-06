@@ -54,6 +54,8 @@ body {
 
 .clock-container {
     text-align: center;
+    position: relative;
+    z-index: 1;
 }
 
 .clock {
@@ -138,6 +140,18 @@ body {
 
 .icon-button:hover {
     transform: scale(1.05);
+}
+
+.icon-button.is-disabled {
+    opacity: 0.35;
+    filter: grayscale(0.45);
+    cursor: not-allowed;
+    pointer-events: none;
+    transform: none;
+}
+
+.icon-button.is-disabled:hover {
+    transform: none;
 }
 
 #githubIcon {
@@ -321,9 +335,53 @@ input:checked+.toggle-slider:before {
     transform: translateX(22px);
 }
 
+.toggle-container.is-disabled {
+    opacity: 0.45;
+    pointer-events: none;
+    user-select: none;
+}
+
+.toggle-container.is-disabled .toggle,
+.toggle input:disabled + .toggle-slider {
+    cursor: not-allowed;
+}
+
+#backgroundSelect option:disabled {
+    color: #b0b0b0;
+    font-style: italic;
+}
+
 :root {
     --theme-color: #1b912b;
     /* Default Green */
+    --bg-anim-base: #D4D4D4;
+    --bg-anim-light: #F0F2F4;
+    --bg-anim-mid: #C5C9CE;
+    --bg-anim-deep: #A8B0B8;
+}
+
+@property --bg-anim-base {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #D4D4D4;
+}
+
+@property --bg-anim-light {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #F0F2F4;
+}
+
+@property --bg-anim-mid {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #C5C9CE;
+}
+
+@property --bg-anim-deep {
+    syntax: '<color>';
+    inherits: true;
+    initial-value: #A8B0B8;
 }
 
 #editEventsBtn {
@@ -1773,4 +1831,220 @@ button:hover {
 .select-volunteers-btn {
     margin-top: 10px;
     width: 100%;
+}
+
+/* --- SFONDO ANIMATO (mesh gradient screensaver) --- */
+#bg-animation {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    contain: paint;
+    transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+
+body.bg-animated #bg-animation {
+    opacity: 1;
+    visibility: visible;
+}
+
+.bg-wash {
+    position: absolute;
+    top: -30%;
+    left: -30%;
+    width: 160%;
+    height: 160%;
+    background: linear-gradient(
+        125deg,
+        var(--bg-anim-base) 0%,
+        var(--bg-anim-light) 28%,
+        var(--bg-anim-mid) 54%,
+        var(--bg-anim-deep) 78%,
+        var(--bg-anim-base) 100%
+    );
+    background-size: 240% 240%;
+    animation: bgWashDrift 32s ease-in-out infinite;
+    will-change: transform, background-position;
+}
+
+.bg-orb {
+    position: absolute;
+    pointer-events: none;
+    will-change: transform, border-radius;
+}
+
+.bg-orb-a {
+    width: 95vmin;
+    height: 95vmin;
+    top: -28%;
+    left: -22%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--bg-anim-light) 0%,
+        color-mix(in srgb, var(--bg-anim-light) 55%, transparent) 42%,
+        transparent 72%
+    );
+    border-radius: 42% 58% 56% 44% / 46% 44% 56% 54%;
+    animation: bgOrbA 26s ease-in-out infinite;
+}
+
+.bg-orb-b {
+    width: 85vmin;
+    height: 85vmin;
+    right: -24%;
+    bottom: -26%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--bg-anim-deep) 0%,
+        color-mix(in srgb, var(--bg-anim-deep) 50%, transparent) 40%,
+        transparent 70%
+    );
+    border-radius: 58% 42% 44% 56% / 52% 48% 52% 48%;
+    opacity: 0.88;
+    animation: bgOrbB 34s ease-in-out infinite;
+}
+
+.bg-orb-c {
+    width: 70vmin;
+    height: 70vmin;
+    top: 28%;
+    left: 38%;
+    background: radial-gradient(
+        circle at 50% 50%,
+        var(--bg-anim-mid) 0%,
+        color-mix(in srgb, var(--bg-anim-mid) 45%, transparent) 38%,
+        transparent 68%
+    );
+    border-radius: 46% 54% 42% 58% / 58% 42% 58% 42%;
+    opacity: 0.75;
+    animation: bgOrbC 30s ease-in-out infinite;
+}
+
+#bg-animation::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse at center,
+        transparent 42%,
+        color-mix(in srgb, var(--bg-anim-deep) 8%, transparent) 100%
+    );
+    z-index: 2;
+    backdrop-filter: blur(20px);
+}
+
+@keyframes bgWashDrift {
+    0% {
+        background-position: 0% 45%;
+        transform: rotate(0deg) scale(1.08);
+    }
+    25% {
+        background-position: 65% 35%;
+        transform: rotate(-6deg) scale(1.22);
+    }
+    50% {
+        background-position: 100% 55%;
+        transform: rotate(7deg) scale(1.18);
+    }
+    75% {
+        background-position: 35% 70%;
+        transform: rotate(5deg) scale(1.14);
+    }
+    100% {
+        background-position: 0% 45%;
+        transform: rotate(0deg) scale(1.08);
+    }
+}
+
+@keyframes bgOrbA {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1);
+        border-radius: 42% 58% 56% 44% / 46% 44% 56% 54%;
+    }
+    25% {
+        transform: translate3d(16vw, 12vh, 0) scale(1.12);
+        border-radius: 58% 42% 44% 56% / 44% 56% 46% 54%;
+    }
+    50% {
+        transform: translate3d(6vw, 26vh, 0) scale(0.94);
+        border-radius: 50% 50% 38% 62% / 40% 60% 40% 60%;
+    }
+    75% {
+        transform: translate3d(-12vw, 8vh, 0) scale(1.08);
+        border-radius: 38% 62% 58% 42% / 62% 38% 62% 38%;
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1);
+        border-radius: 42% 58% 56% 44% / 46% 44% 56% 54%;
+    }
+}
+
+@keyframes bgOrbB {
+    0% {
+        transform: translate3d(0, 0, 0) scale(1.04);
+        border-radius: 58% 42% 44% 56% / 52% 48% 52% 48%;
+    }
+    25% {
+        transform: translate3d(-18vw, -10vh, 0) scale(0.9);
+        border-radius: 42% 58% 62% 38% / 48% 52% 48% 52%;
+    }
+    50% {
+        transform: translate3d(-8vw, -22vh, 0) scale(1.14);
+        border-radius: 60% 40% 48% 52% / 40% 60% 40% 60%;
+    }
+    75% {
+        transform: translate3d(14vw, -6vh, 0) scale(1);
+        border-radius: 46% 54% 40% 60% / 56% 44% 56% 44%;
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(1.04);
+        border-radius: 58% 42% 44% 56% / 52% 48% 52% 48%;
+    }
+}
+
+@keyframes bgOrbC {
+    0% {
+        transform: translate3d(0, 0, 0) scale(0.96);
+        border-radius: 46% 54% 42% 58% / 58% 42% 58% 42%;
+    }
+    33% {
+        transform: translate3d(-20vw, -14vh, 0) scale(1.1);
+        border-radius: 60% 40% 55% 45% / 40% 60% 40% 60%;
+    }
+    66% {
+        transform: translate3d(12vw, 16vh, 0) scale(1.04);
+        border-radius: 40% 60% 48% 52% / 62% 38% 55% 45%;
+    }
+    100% {
+        transform: translate3d(0, 0, 0) scale(0.96);
+        border-radius: 46% 54% 42% 58% / 58% 42% 58% 42%;
+    }
+}
+
+.bg-wash,
+.bg-orb {
+    animation-play-state: paused;
+}
+
+body.bg-animated:not(.bg-paused) #bg-animation .bg-wash,
+body.bg-animated:not(.bg-paused) #bg-animation .bg-orb {
+    animation-play-state: running;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bg-wash,
+    .bg-orb-a,
+    .bg-orb-b,
+    .bg-orb-c {
+        animation: none !important;
+    }
+
+    .bg-wash {
+        transform: scale(1.12);
+        background-position: 40% 50%;
+    }
 }
