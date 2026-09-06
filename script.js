@@ -24,6 +24,25 @@ let lastSyncTime = 0;
 let isSyncing = false;
 let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
 
+/* ============================================================================
+ * FLAG FUNZIONI TEMPORANEAMENTE DISABILITATE
+ * Per tornare allo stato originale, imposta i valori a `true` e ricarica.
+ *
+ * SCHEDULE_BUTTON_ENABLED
+ *   true  → il pulsante tabella (orario scolastico) è cliccabile
+ *   false → pulsante visibile ma sbiadito e non cliccabile
+ *   Widget in pillola, tabella, colori materie e logica orario restano attivi.
+ *
+ * AUTOMATIC_BACKGROUND_ENABLED
+ *   true  → l'opzione "Automatico" è selezionabile e cambia lo sfondo in base all'ora
+ *   false → opzione visibile ma sbiadita e non selezionabile
+ *   La logica automatica (orario, materie, palette, animazione) resta nel codice.
+ * ============================================================================ */
+const SCHEDULE_BUTTON_ENABLED = false;
+const AUTOMATIC_BACKGROUND_ENABLED = false;
+const FALLBACK_SOLID_BACKGROUND = '#D4D4D4';
+let lastAutoBackgroundColor = null;
+
 // Event management variables
 let currentEditingEventId = null;
 let selectedVolunteers = [];
@@ -550,6 +569,28 @@ const materiaColoriSfondo = {
     "Ricreazione": "#E1E1E1"
 };
 
+// Palette mesh per ogni sfondo solido (temi esclusi). Chiavi in maiuscolo.
+const backgroundAnimationPalettes = {
+    '#D4D4D4': { base: '#D4D4D4', light: '#F0F2F4', mid: '#C5C9CE', deep: '#A8B0B8' },
+    '#FAD2E3': { base: '#FAD2E3', light: '#FFF0F6', mid: '#F5B8D0', deep: '#E89AB4' },
+    '#BDEAFC': { base: '#BDEAFC', light: '#E8F7FF', mid: '#A3D9F5', deep: '#7EC4E4' },
+    '#FFFFFF': { base: '#FFFFFF', light: '#FFFFFF', mid: '#F0F3F8', deep: '#DDE3EE' },
+    '#CEF5CE': { base: '#CEF5CE', light: '#EAFBEA', mid: '#B4E8B4', deep: '#86C986' },
+    '#FAE6C0': { base: '#FAE6C0', light: '#FFF6E4', mid: '#F5D49A', deep: '#E8B86A' },
+    '#F0C9F2': { base: '#F0C9F2', light: '#FAEAFB', mid: '#E0AEE4', deep: '#C48BC8' },
+    '#FFCFD7': { base: '#FFCFD7', light: '#FFE8EC', mid: '#FFB8C4', deep: '#F090A4' },
+    '#E8D4CD': { base: '#E8D4CD', light: '#F6EBE6', mid: '#D4B8AE', deep: '#C09A8C' },
+    '#E4E4E4': { base: '#E4E4E4', light: '#F5F5F5', mid: '#D0D0D0', deep: '#B4B8BE' },
+    '#E2EAFB': { base: '#E2EAFB', light: '#F2F6FF', mid: '#C5D4F5', deep: '#8EAAE0' },
+    '#DDDBFF': { base: '#DDDBFF', light: '#EEEDFF', mid: '#C4C0F5', deep: '#9A94E0' },
+    '#FFC4C4': { base: '#FFC4C4', light: '#FFE4E4', mid: '#FFA8A8', deep: '#F08080' },
+    '#FBEFDC': { base: '#FBEFDC', light: '#FFF8EC', mid: '#F0D9B0', deep: '#E0C080' },
+    '#F3CEF5': { base: '#F3CEF5', light: '#FBEAFC', mid: '#E0B0E4', deep: '#C888D0' },
+    '#D0E1F5': { base: '#D0E1F5', light: '#E8F1FB', mid: '#B0CAE8', deep: '#7EA8D4' },
+    '#FFF2D5': { base: '#FFF2D5', light: '#FFF8EA', mid: '#F5E0A8', deep: '#E8CC78' },
+    '#E1E1E1': { base: '#E1E1E1', light: '#F4F4F4', mid: '#D0D0D0', deep: '#B8B8B8' }
+};
+
 const fasceOrarie = [
     // Orario Standard
     { nome: "Ora 1", inizio: { ore: 8, minuti: 15 }, fine: { ore: 9, minuti: 15 } },
@@ -576,7 +617,7 @@ function updateClock() {
     const dateStr = now.toLocaleDateString('it-IT', dateOptions);
     document.getElementById('date').textContent = dateStr;
     updateScheduleWidget();
-    if (currentBackgroundMode === 'automatico') {
+    if (currentBackgroundMode === 'automatico' && AUTOMATIC_BACKGROUND_ENABLED) {
         updateAutomaticBackground();
     }
     const currentTime = Date.now();
@@ -764,6 +805,97 @@ function getMateriaForCurrentTime(now) {
     return null; // Fuori orario scolastico
 }
 
+function normalizeHexColor(color) {
+    if (!color || typeof color !== 'string') return color;
+    if (color.charAt(0) === '#' && color.length === 7) {
+        return color.toUpperCase();
+    }
+    return color;
+}
+
+function hexToRgb(hex) {
+    const value = normalizeHexColor(hex);
+    if (!value || value.charAt(0) !== '#') return null;
+    return {
+        r: parseInt(value.slice(1, 3), 16),
+        g: parseInt(value.slice(3, 5), 16),
+        b: parseInt(value.slice(5, 7), 16)
+    };
+}
+
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(channel => {
+        return Math.round(Math.max(0, Math.min(255, channel))).toString(16).padStart(2, '0');
+    }).join('').toUpperCase();
+}
+
+function mixHexColors(a, b, amount) {
+    const pa = hexToRgb(a);
+    const pb = hexToRgb(b);
+    if (!pa || !pb) return a;
+    return rgbToHex(
+        pa.r + (pb.r - pa.r) * amount,
+        pa.g + (pb.g - pa.g) * amount,
+        pa.b + (pb.b - pa.b) * amount
+    );
+}
+
+function deriveAnimationPalette(hex) {
+    const base = normalizeHexColor(hex) || FALLBACK_SOLID_BACKGROUND;
+    return {
+        base,
+        light: mixHexColors(base, '#FFFFFF', 0.5),
+        mid: mixHexColors(base, '#000000', 0.1),
+        deep: mixHexColors(mixHexColors(base, '#3B6EA5', 0.28), '#000000', 0.06)
+    };
+}
+
+function getAnimationPalette(hex) {
+    const key = normalizeHexColor(hex);
+    return backgroundAnimationPalettes[key] || deriveAnimationPalette(key);
+}
+
+function getActiveSolidColor() {
+    if (eventThemes[currentBackgroundMode]) return null;
+    if (currentBackgroundMode === 'automatico') {
+        if (!AUTOMATIC_BACKGROUND_ENABLED) return FALLBACK_SOLID_BACKGROUND;
+        const now = new Date(Date.now() + serverTimeOffset);
+        const materia = getMateriaForCurrentTime(now);
+        return (materia && materiaColoriSfondo[materia]) ? materiaColoriSfondo[materia] : FALLBACK_SOLID_BACKGROUND;
+    }
+    return currentBackgroundMode;
+}
+
+function isBackgroundAnimationActive() {
+    return localStorage.getItem('animateBackground') === 'true' && !eventThemes[currentBackgroundMode];
+}
+
+function setBackgroundAnimationPalette(hex) {
+    const palette = getAnimationPalette(hex);
+    const root = document.documentElement;
+    root.style.setProperty('--bg-anim-base', palette.base);
+    root.style.setProperty('--bg-anim-light', palette.light);
+    root.style.setProperty('--bg-anim-mid', palette.mid);
+    root.style.setProperty('--bg-anim-deep', palette.deep);
+}
+
+function syncBackgroundAnimation() {
+    const active = isBackgroundAnimationActive();
+    document.body.classList.toggle('bg-animated', active);
+    if (active) {
+        const color = getActiveSolidColor();
+        if (color) setBackgroundAnimationPalette(color);
+    }
+}
+
+function applySolidBackgroundColor(backgroundColor) {
+    document.body.style.backgroundColor = backgroundColor;
+    const pill = document.getElementById('status-pill');
+    if (pill) {
+        pill.style.backgroundColor = backgroundColor.toLowerCase() === '#ffffff' ? '#f8f9fa' : 'white';
+    }
+}
+
 function updateAutomaticBackground() {
     const now = new Date(Date.now() + serverTimeOffset);
     const materia = getMateriaForCurrentTime(now);
@@ -772,14 +904,17 @@ function updateAutomaticBackground() {
     if (materia && materiaColoriSfondo[materia]) {
         backgroundColor = materiaColoriSfondo[materia];
     } else {
-        backgroundColor = '#D4D4D4'; // Grigio predefinito
+        backgroundColor = FALLBACK_SOLID_BACKGROUND;
     }
 
-    document.body.style.backgroundColor = backgroundColor;
-    const pill = document.getElementById('status-pill');
-    if (pill) {
-        // Se lo sfondo del body è bianco, la pillola deve avere uno sfondo leggermente grigio per contrasto
-        pill.style.backgroundColor = backgroundColor === '#ffffff' ? '#f8f9fa' : 'white';
+    if (backgroundColor === lastAutoBackgroundColor) {
+        return;
+    }
+    lastAutoBackgroundColor = backgroundColor;
+
+    applySolidBackgroundColor(backgroundColor);
+    if (isBackgroundAnimationActive()) {
+        setBackgroundAnimationPalette(backgroundColor);
     }
 }
 
@@ -798,6 +933,7 @@ function applyBackground(color) {
     if (blurOverlay) blurOverlay.remove();
 
     currentBackgroundMode = color;
+    lastAutoBackgroundColor = null;
 
     // Set theme color CSS variable
     let themeColor = '#1b912b'; // Default Green
@@ -809,7 +945,13 @@ function applyBackground(color) {
     document.documentElement.style.setProperty('--theme-color', themeColor);
 
     if (color === 'automatico') {
-        updateAutomaticBackground();
+        if (AUTOMATIC_BACKGROUND_ENABLED) {
+            updateAutomaticBackground();
+        } else {
+            // Sfondo automatico disabilitato temporaneamente (fallback grigio).
+            // Per riabilitare: AUTOMATIC_BACKGROUND_ENABLED = true
+            applySolidBackgroundColor(FALLBACK_SOLID_BACKGROUND);
+        }
         document.body.style.backgroundImage = 'none';
         document.body.style.backgroundSize = '';
         document.body.style.backgroundPosition = '';
@@ -830,17 +972,71 @@ function applyBackground(color) {
         }
     } else {
         // Sfondo colorato normale
-        document.body.style.backgroundColor = color;
+        applySolidBackgroundColor(color);
         document.body.style.backgroundImage = 'none';
         document.body.style.backgroundSize = '';
         document.body.style.backgroundPosition = '';
         document.body.style.backgroundRepeat = '';
-        const pill = document.getElementById('status-pill');
-        if (pill) pill.style.backgroundColor = color === '#ffffff' ? '#f8f9fa' : 'white';
         if (clock) clock.style.color = '#1a1a1a';
         if (date) date.style.color = '#666';
     }
+
+    syncBackgroundAnimation();
 }
+
+function applyTemporaryFeatureFlags() {
+    // Riabilitazione rapida: imposta i flag in cima al file a true e ricarica.
+    const scheduleIcon = document.getElementById('scheduleIcon');
+    if (scheduleIcon) {
+        if (SCHEDULE_BUTTON_ENABLED) {
+            scheduleIcon.classList.remove('is-disabled');
+            scheduleIcon.removeAttribute('aria-disabled');
+            scheduleIcon.removeAttribute('title');
+        } else {
+            scheduleIcon.classList.add('is-disabled');
+            scheduleIcon.setAttribute('aria-disabled', 'true');
+            scheduleIcon.title = 'Orario scolastico temporaneamente disabilitato';
+        }
+    }
+
+    const autoOpt = document.querySelector('#backgroundSelect option[value="automatico"]');
+    if (autoOpt) {
+        autoOpt.disabled = !AUTOMATIC_BACKGROUND_ENABLED;
+        if (!AUTOMATIC_BACKGROUND_ENABLED) {
+            autoOpt.title = 'Sfondo automatico temporaneamente disabilitato';
+        } else {
+            autoOpt.removeAttribute('title');
+        }
+    }
+}
+
+function updateAnimateToggleAvailability() {
+    const toggle = document.getElementById('animateBackgroundToggle');
+    const row = document.getElementById('animateBackgroundRow');
+    const selected = document.getElementById('backgroundSelect')?.value || currentBackgroundMode;
+    const isTheme = !!eventThemes[selected];
+    if (row) {
+        row.classList.toggle('is-disabled', isTheme);
+        row.title = isTheme ? 'L\'animazione non è disponibile con i temi' : '';
+    }
+    if (toggle) {
+        toggle.disabled = isTheme;
+    }
+}
+
+function applyThemeToggleColor(input) {
+    if (!input) return;
+    const slider = input.nextElementSibling;
+    if (!slider) return;
+    if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
+        const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
+        slider.style.backgroundColor = input.checked ? activeColor : '#ccc';
+    }
+}
+
+document.addEventListener('visibilitychange', () => {
+    document.body.classList.toggle('bg-paused', document.hidden);
+});
 
 function createEventBlurOverlay() {
     let blurOverlay = document.getElementById('event-blur-overlay');
@@ -1538,7 +1734,7 @@ document.addEventListener('DOMContentLoaded', function () {
         infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v4.1';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
-    if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub4d.lollo.dpdns.org');
+    if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub5d.lollo.dpdns.org');
 
     // Creazione Pillola e Widget
     let statusPill = document.createElement('div');
@@ -1892,6 +2088,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const savedBackground = localStorage.getItem('clockBackground') || 'automatico';
     const showOffset = localStorage.getItem('showOffset') === 'true';
     const showSchedule = localStorage.getItem('showSchedule') !== 'false';
+    const animateBackground = localStorage.getItem('animateBackground') === 'true';
     applyFont(savedFont, savedWeight);
     applyBackground(savedBackground);
     if (fontSelect) fontSelect.value = savedFont;
@@ -1901,10 +2098,17 @@ document.addEventListener('DOMContentLoaded', function () {
     if (showOffsetToggle) showOffsetToggle.checked = showOffset;
     const showScheduleToggle = document.getElementById('showScheduleToggle');
     if (showScheduleToggle) showScheduleToggle.checked = showSchedule;
+    const animateBackgroundToggle = document.getElementById('animateBackgroundToggle');
+    if (animateBackgroundToggle) animateBackgroundToggle.checked = animateBackground;
 
     toggleWeightSelect(savedFont);
+    applyTemporaryFeatureFlags();
+    updateAnimateToggleAvailability();
 
-    if (scheduleIcon) scheduleIcon.addEventListener('click', () => openModal(scheduleModal));
+    // Per riabilitare il pulsante orario: SCHEDULE_BUTTON_ENABLED = true
+    if (scheduleIcon && SCHEDULE_BUTTON_ENABLED) {
+        scheduleIcon.addEventListener('click', () => openModal(scheduleModal));
+    }
     if (settingsIcon) settingsIcon.addEventListener('click', () => openModal(settingsModal));
     if (infoIcon) infoIcon.addEventListener('click', () => openModal(infoModal));
 
@@ -2269,6 +2473,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const selectedBackground = backgroundSelect.value;
             localStorage.setItem('clockBackground', selectedBackground);
             applyBackground(selectedBackground);
+            updateAnimateToggleAvailability();
             closeModal(settingsModal);
         });
     }
@@ -2339,16 +2544,19 @@ document.addEventListener('DOMContentLoaded', function () {
     if (showScheduleToggle) {
         showScheduleToggle.addEventListener('change', (e) => {
             localStorage.setItem('showSchedule', e.target.checked);
-            // Se siamo in modalità natalizia o stranger things, aggiorna il colore del toggle
-            if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
-                const toggle = e.target.nextElementSibling;
-                const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
-                if (toggle && e.target.checked) {
-                    toggle.style.backgroundColor = activeColor;
-                } else if (toggle) {
-                    toggle.style.backgroundColor = '#ccc';
-                }
-            }
+            applyThemeToggleColor(e.target);
+        });
+    }
+    if (animateBackgroundToggle) {
+        animateBackgroundToggle.addEventListener('change', (e) => {
+            localStorage.setItem('animateBackground', e.target.checked);
+            syncBackgroundAnimation();
+            applyThemeToggleColor(e.target);
+        });
+    }
+    if (backgroundSelect) {
+        backgroundSelect.addEventListener('change', () => {
+            updateAnimateToggleAvailability();
         });
     }
 
