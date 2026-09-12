@@ -59,8 +59,8 @@
                 } else if (savedBackground === 'natale') {
                     document.body.style.backgroundColor = '#c0392b'; // Red background for Christmas
                 } else if (savedBackground === 'automatico') {
-                    // AUTOMATIC_BACKGROUND_ENABLED = false in script.js — fallback grigio.
-                    // Per riabilitare lo sfondo automatico: imposta quel flag a true e togli questo fallback.
+                    // Placeholder grigio istantaneo in attesa che script.js calcoli
+                    // il colore della materia corrente (evita un flash di colore).
                     document.body.style.backgroundColor = '#D4D4D4';
                 } else if (savedBackground) {
                     document.body.style.backgroundColor = savedBackground;
@@ -85,10 +85,9 @@
         <i class="fas fa-arrow-left"></i>
     </div>
     <!--
-      PULSANTE ORARIO SCOLASTICO — disabilitato temporaneamente.
-      Flag: SCHEDULE_BUTTON_ENABLED in script.js
-      Per tornare allo stato originale: imposta quel flag a true.
-      Non rimuovere questo pulsante: tabella, widget e logica restano nel codice.
+      PULSANTE ORARIO SCOLASTICO — riabilitato.
+      Flag: SCHEDULE_BUTTON_ENABLED in script.js (ora true).
+      Per disabilitarlo di nuovo: imposta quel flag a false.
     -->
     <div id="scheduleIcon" class="icon-button">
         <i class="fas fa-table"></i>
@@ -137,10 +136,9 @@
                 <h4>Sfondo</h4>
                 <select id="backgroundSelect">
                     <!--
-                      Sfondo Automatico — disabilitato temporaneamente.
-                      Flag: AUTOMATIC_BACKGROUND_ENABLED in script.js
-                      Per tornare allo stato originale: imposta quel flag a true.
-                      La logica per materia/orario resta nel codice.
+                      Sfondo Automatico — riabilitato.
+                      Flag: AUTOMATIC_BACKGROUND_ENABLED in script.js (ora true).
+                      Segue l'orario provvisorio (getOrarioAttivo) finché ORARIO_PROVVISORIO_ATTIVO è true.
                     -->
                     <option value="automatico">Automatico</option>
                     <option value="#D4D4D4">Grigio</option>
@@ -217,7 +215,7 @@
 
     <div id="scheduleModal" class="modal">
         <div class="modal-header">
-            <h3>Orario scolastico</h3>
+            <h3>Orario scolastico (provvisorio)</h3>
         </div>
         <div class="schedule-table-container">
             <table id="scheduleTable" class="schedule-table">
@@ -231,6 +229,49 @@
                         <th>Sabato</th>
                     </tr>
                 </thead>
+                <!--
+                  ORARIO PROVVISORIO — SOLO QUESTA SETTIMANA (4 ore invece delle 5 abituali).
+                  L'orario standard a 5 ore è conservato subito sotto, commentato, per il ripristino.
+                  Per ripristinare l'orario standard:
+                    1) elimina questo <tbody> provvisorio
+                    2) scommenta il blocco "ORARIO STANDARD (5 ORE)" qui sotto
+                    3) riporta il titolo della modale a "Orario scolastico"
+                -->
+                <tbody>
+                    <tr>
+                        <td>Scienze</td>
+                        <td>Filosofia</td>
+                        <td rowspan="2">Scienze</td>
+                        <td>Informatica</td>
+                        <td>Matematica</td>
+                        <td>Inglese</td>
+                    </tr>
+                    <tr>
+                        <td>Fisica</td>
+                        <td>Italiano</td>
+                        <td>Filosofia</td>
+                        <td>Arte</td>
+                        <td>Storia</td>
+                    </tr>
+                    <tr>
+                        <td>Inglese</td>
+                        <td>Scienze</td>
+                        <td>Ginnastica</td>
+                        <td>Scienze</td>
+                        <td>Informatica</td>
+                        <td>Ginnastica</td>
+                    </tr>
+                    <tr>
+                        <td>Matematica</td>
+                        <td>Fisica</td>
+                        <td>Matematica</td>
+                        <td>Italiano</td>
+                        <td>Storia</td>
+                        <td>Italiano</td>
+                    </tr>
+                </tbody>
+                <!--
+                ORARIO STANDARD (5 ORE) — da ripristinare al termine della settimana provvisoria
                 <tbody>
                     <tr>
                         <td rowspan="2">Scienze</td>
@@ -268,6 +309,7 @@
                         <td>Fisica</td>
                     </tr>
                 </tbody>
+                -->
             </table>
         </div>
         <div class="modal-footer">
