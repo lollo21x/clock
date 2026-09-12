@@ -38,8 +38,8 @@ let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
  *   false → opzione visibile ma sbiadita e non selezionabile
  *   La logica automatica (orario, materie, palette, animazione) resta nel codice.
  * ============================================================================ */
-const SCHEDULE_BUTTON_ENABLED = false;
-const AUTOMATIC_BACKGROUND_ENABLED = false;
+const SCHEDULE_BUTTON_ENABLED = true;
+const AUTOMATIC_BACKGROUND_ENABLED = true;
 const FALLBACK_SOLID_BACKGROUND = '#D4D4D4';
 let lastAutoBackgroundColor = null;
 
@@ -539,6 +539,28 @@ const orarioScolastico = {
     6: ["Storia", "Arte", "Filosofia", "Informatica", "Fisica"]
 };
 
+/* ============================================================================
+ * ORARIO PROVVISORIO — SOLO QUESTA SETTIMANA (4 ore invece delle 5 abituali)
+ * Flag: ORARIO_PROVVISORIO_ATTIVO
+ *   true  → widget e tabella usano l'orario provvisorio a 4 ore qui sotto
+ *   false → si torna all'orario standard a 5 ore (orarioScolastico sopra)
+ * Per ripristinare l'orario standard al termine di questa settimana:
+ * imposta ORARIO_PROVVISORIO_ATTIVO a false. orarioScolastico resta invariato.
+ * ============================================================================ */
+const ORARIO_PROVVISORIO_ATTIVO = true;
+const orarioProvvisorio = {
+    1: ["Scienze", "Fisica", "Inglese", "Matematica"],     // Lunedì
+    2: ["Filosofia", "Italiano", "Scienze", "Fisica"],      // Martedì
+    3: ["Scienze", "Scienze", "Ginnastica", "Matematica"],  // Mercoledì
+    4: ["Informatica", "Filosofia", "Scienze", "Italiano"], // Giovedì
+    5: ["Matematica", "Arte", "Informatica", "Storia"],     // Venerdì
+    6: ["Inglese", "Storia", "Ginnastica", "Italiano"]      // Sabato
+};
+
+function getOrarioAttivo() {
+    return ORARIO_PROVVISORIO_ATTIVO ? orarioProvvisorio : orarioScolastico;
+}
+
 const materiaColori = {
     "Arte": "#D81B60",
     "Ginnastica": "#995C43",
@@ -653,7 +675,8 @@ function updateScheduleWidget() {
                 } else {
                     // **LOGICA CORRETTA**: Calcola l'indice della materia contando le "Ore" precedenti
                     const subjectIndex = fasceOrarie.slice(0, i + 1).filter(f => f.nome.startsWith("Ora")).length - 1;
-                    materia = (orarioScolastico[day] && orarioScolastico[day][subjectIndex]) ? orarioScolastico[day][subjectIndex] : "Pausa";
+                    const orarioAttivo = getOrarioAttivo();
+                    materia = (orarioAttivo[day] && orarioAttivo[day][subjectIndex]) ? orarioAttivo[day][subjectIndex] : "Pausa";
                 }
 
                 let color = materiaColori[materia] || "#000000";
@@ -796,7 +819,8 @@ function getMateriaForCurrentTime(now) {
             }
             if (fascia.nome.startsWith("Ora")) {
                 const subjectIndex = fasceOrarie.slice(0, i + 1).filter(f => f.nome.startsWith("Ora")).length - 1;
-                const materia = (orarioScolastico[day] && orarioScolastico[day][subjectIndex]) ? orarioScolastico[day][subjectIndex] : null;
+                const orarioAttivo = getOrarioAttivo();
+                const materia = (orarioAttivo[day] && orarioAttivo[day][subjectIndex]) ? orarioAttivo[day][subjectIndex] : null;
                 return materia;
             }
         }
