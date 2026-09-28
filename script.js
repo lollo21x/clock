@@ -549,12 +549,12 @@ const orarioScolastico = {
  * ============================================================================ */
 const ORARIO_PROVVISORIO_ATTIVO = true;
 const orarioProvvisorio = {
-    1: ["Scienze", "Fisica", "Inglese", "Matematica"],     // Lunedì
-    2: ["Filosofia", "Italiano", "Scienze", "Fisica"],      // Martedì
-    3: ["Scienze", "Scienze", "Ginnastica", "Matematica"],  // Mercoledì
-    4: ["Informatica", "Filosofia", "Scienze", "Italiano"], // Giovedì
-    5: ["Matematica", "Arte", "Informatica", "Storia"],     // Venerdì
-    6: ["Inglese", "Storia", "Ginnastica", "Italiano"]      // Sabato
+    1: ["Inglese", "Scienze", "Scienze", "Fisica", "Arte"],            // Lunedì
+    2: ["Scienze", "Inglese", "Fisica", "Filosofia", "Religione"],     // Martedì
+    3: ["Matematica", "Matematica", "Ginnastica", "Fisica", "Italiano"], // Mercoledì
+    4: ["Inglese", "Informatica", "Scienze", "Italiano", "Italiano"],  // Giovedì
+    5: ["Matematica", "Filosofia", "Arte", "Informatica", "Storia"],   // Venerdì
+    6: ["Storia", "Italiano", "Ginnastica", "Matematica", "Scienze"]   // Sabato
 };
 
 function getOrarioAttivo() {
