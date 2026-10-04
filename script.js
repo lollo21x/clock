@@ -531,34 +531,16 @@ const eventThemes = {
 
 // --- IMPOSTAZIONI ORARIO SCOLASTICO ---
 const orarioScolastico = {
-    1: ["Scienze", "Scienze", "Matematica", "Matematica", "Inglese", "Religione"], // Lunedì (+ Test Religione)
-    2: ["Informatica", "Religione", "Fisica", "Inglese", "Italiano"],
-    3: ["Scienze", "Scienze", "Italiano", "Arte", "Matematica"],
-    4: ["Inglese", "Storia", "Filosofia", "Fisica", "Scienze"],
-    5: ["Ginnastica", "Ginnastica", "Italiano", "Italiano", "Matematica"],
-    6: ["Storia", "Arte", "Filosofia", "Informatica", "Fisica"]
-};
-
-/* ============================================================================
- * ORARIO PROVVISORIO — SOLO QUESTA SETTIMANA (4 ore invece delle 5 abituali)
- * Flag: ORARIO_PROVVISORIO_ATTIVO
- *   true  → widget e tabella usano l'orario provvisorio a 4 ore qui sotto
- *   false → si torna all'orario standard a 5 ore (orarioScolastico sopra)
- * Per ripristinare l'orario standard al termine di questa settimana:
- * imposta ORARIO_PROVVISORIO_ATTIVO a false. orarioScolastico resta invariato.
- * ============================================================================ */
-const ORARIO_PROVVISORIO_ATTIVO = true;
-const orarioProvvisorio = {
-    1: ["Inglese", "Scienze", "Scienze", "Fisica", "Arte"],            // Lunedì
-    2: ["Scienze", "Inglese", "Fisica", "Filosofia", "Religione"],     // Martedì
-    3: ["Matematica", "Matematica", "Ginnastica", "Fisica", "Italiano"], // Mercoledì
-    4: ["Inglese", "Informatica", "Scienze", "Italiano", "Italiano"],  // Giovedì
-    5: ["Matematica", "Filosofia", "Arte", "Informatica", "Storia"],   // Venerdì
-    6: ["Storia", "Italiano", "Ginnastica", "Matematica", "Scienze"]   // Sabato
+    1: ["Fisica", "Matematica", "Arte", "Inglese", "Scienze"], // Lunedì
+    2: ["Scienze", "Scienze", "Italiano", "Filosofia", "Inglese"], // Martedì
+    3: ["Matematica", "Matematica", "Ginnastica", "Fisica", "Scienze"], // Mercoledì
+    4: ["Scienze", "Informatica", "Fisica", "Inglese", "Religione"], // Giovedì
+    5: ["Matematica", "Filosofia", "Italiano", "Italiano", "Storia"], // Venerdì
+    6: ["Arte", "Italiano", "Ginnastica", "Storia", "Informatica"] // Sabato
 };
 
 function getOrarioAttivo() {
-    return ORARIO_PROVVISORIO_ATTIVO ? orarioProvvisorio : orarioScolastico;
+    return orarioScolastico;
 }
 
 const materiaColori = {
@@ -620,9 +602,7 @@ const fasceOrarie = [
     { nome: "Ricreazione", inizio: { ore: 10, minuti: 10 }, fine: { ore: 10, minuti: 20 } },
     { nome: "Ora 3", inizio: { ore: 10, minuti: 20 }, fine: { ore: 11, minuti: 15 } },
     { nome: "Ora 4", inizio: { ore: 11, minuti: 15 }, fine: { ore: 12, minuti: 15 } },
-    { nome: "Ora 5", inizio: { ore: 12, minuti: 15 }, fine: { ore: 13, minuti: 15 } },
-    // Materia di TEST PROVVISORIA
-    { nome: "Ora 6", inizio: { ore: 18, minuti: 10 }, fine: { ore: 19, minuti: 10 } }
+    { nome: "Ora 5", inizio: { ore: 12, minuti: 15 }, fine: { ore: 13, minuti: 15 } }
 ];
 
 // ----------------------------------------------------------------
