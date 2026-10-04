@@ -138,7 +138,7 @@
                     <!--
                       Sfondo Automatico — riabilitato.
                       Flag: AUTOMATIC_BACKGROUND_ENABLED in script.js (ora true).
-                      Segue l'orario provvisorio (getOrarioAttivo) finché ORARIO_PROVVISORIO_ATTIVO è true.
+                      Segue l'orario scolastico (getOrarioAttivo).
                     -->
                     <option value="automatico">Automatico</option>
                     <option value="#D4D4D4">Grigio</option>
@@ -215,7 +215,7 @@
 
     <div id="scheduleModal" class="modal">
         <div class="modal-header">
-            <h3>Orario scolastico (provvisorio)</h3>
+            <h3>Orario scolastico</h3>
         </div>
         <div class="schedule-table-container">
             <table id="scheduleTable" class="schedule-table">
@@ -229,93 +229,45 @@
                         <th>Sabato</th>
                     </tr>
                 </thead>
-                <!--
-                  ORARIO PROVVISORIO — SOLO QUESTA SETTIMANA (4 ore invece delle 5 abituali).
-                  L'orario standard a 5 ore è conservato subito sotto, commentato, per il ripristino.
-                  Per ripristinare l'orario standard:
-                    1) elimina questo <tbody> provvisorio
-                    2) scommenta il blocco "ORARIO STANDARD (5 ORE)" qui sotto
-                    3) riporta il titolo della modale a "Orario scolastico"
-                -->
                 <tbody>
                     <tr>
-                        <td>Inglese</td>
-                        <td>Scienze</td>
+                        <td>Fisica</td>
+                        <td rowspan="2">Scienze</td>
                         <td rowspan="2">Matematica</td>
-                        <td>Inglese</td>
+                        <td>Scienze</td>
                         <td>Matematica</td>
-                        <td>Storia</td>
+                        <td>Arte</td>
                     </tr>
                     <tr>
-                        <td rowspan="2">Scienze</td>
-                        <td>Inglese</td>
+                        <td>Matematica</td>
                         <td>Informatica</td>
                         <td>Filosofia</td>
                         <td>Italiano</td>
                     </tr>
                     <tr>
-                        <td>Fisica</td>
-                        <td>Ginnastica</td>
-                        <td>Scienze</td>
                         <td>Arte</td>
+                        <td>Italiano</td>
+                        <td>Ginnastica</td>
+                        <td>Fisica</td>
+                        <td rowspan="2">Italiano</td>
                         <td>Ginnastica</td>
                     </tr>
                     <tr>
-                        <td>Fisica</td>
+                        <td>Inglese</td>
                         <td>Filosofia</td>
                         <td>Fisica</td>
-                        <td rowspan="2">Italiano</td>
-                        <td>Informatica</td>
-                        <td>Matematica</td>
-                    </tr>
-                    <tr>
-                        <td>Arte</td>
-                        <td>Religione</td>
-                        <td>Italiano</td>
-                        <td>Storia</td>
-                        <td>Scienze</td>
-                    </tr>
-                </tbody>
-                <!--
-                ORARIO STANDARD (5 ORE) — da ripristinare al termine della settimana provvisoria
-                <tbody>
-                    <tr>
-                        <td rowspan="2">Scienze</td>
-                        <td>Informatica</td>
-                        <td rowspan="2">Scienze</td>
                         <td>Inglese</td>
-                        <td rowspan="2">Ginnastica</td>
                         <td>Storia</td>
                     </tr>
                     <tr>
+                        <td>Scienze</td>
+                        <td>Inglese</td>
+                        <td>Scienze</td>
                         <td>Religione</td>
                         <td>Storia</td>
-                        <td>Arte</td>
-                    </tr>
-                    <tr>
-                        <td rowspan="2">Matematica</td>
-                        <td>Fisica</td>
-                        <td>Italiano</td>
-                        <td>Filosofia</td>
-                        <td rowspan="2">Italiano</td>
-                        <td>Filosofia</td>
-                    </tr>
-                    <tr>
-                        <td>Inglese</td>
-                        <td>Arte</td>
-                        <td>Fisica</td>
                         <td>Informatica</td>
                     </tr>
-                    <tr>
-                        <td>Inglese</td>
-                        <td>Italiano</td>
-                        <td>Matematica</td>
-                        <td>Scienze</td>
-                        <td>Matematica</td>
-                        <td>Fisica</td>
-                    </tr>
                 </tbody>
-                -->
             </table>
         </div>
         <div class="modal-footer">
