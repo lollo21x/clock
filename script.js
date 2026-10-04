@@ -573,6 +573,18 @@ const materiaColoriSfondo = {
     "Ricreazione": "#E1E1E1"
 };
 
+// Imposta su ogni casella della tabella orario i colori della materia
+function colorScheduleTable() {
+    document.querySelectorAll('#scheduleTable td').forEach(td => {
+        const materia = td.textContent.trim();
+        const forte = materiaColori[materia];
+        const tenue = materiaColoriSfondo[materia];
+        if (forte) td.style.setProperty('--m', forte);
+        if (tenue) td.style.setProperty('--m-bg', tenue);
+        td.dataset.materia = materia;
+    });
+}
+
 // Palette mesh per ogni sfondo solido (temi esclusi). Chiavi in maiuscolo.
 const backgroundAnimationPalettes = {
     '#D4D4D4': { base: '#D4D4D4', light: '#F0F2F4', mid: '#C5C9CE', deep: '#A8B0B8' },
@@ -2576,6 +2588,9 @@ document.addEventListener('DOMContentLoaded', function () {
     function toggleWeightSelect(font) {
         if (weightSelect) weightSelect.style.display = font === 'Montserrat' ? 'none' : 'block';
     }
+
+    // Colora ogni casella dell'orario con il colore della sua materia
+    colorScheduleTable();
 
     // Evidenzia il giorno corrente nella tabella orario
     const currentDay = new Date().getDay(); // 0=dom, 1=lun, ..., 6=sab
