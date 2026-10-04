@@ -607,9 +607,18 @@ button:hover {
     transition: background-color 0.3s ease;
 }
 
+/* Caselle colorate per materia: --m (colore forte) e --m-bg (sfondo tenue)
+   vengono impostati da colorScheduleTable() in script.js, partendo da
+   materiaColori / materiaColoriSfondo, così c'è una sola fonte dei colori. */
 .schedule-table td {
-    background-color: white;
-    color: black;
+    --m: #757575;
+    --m-bg: #ffffff;
+    background-color: var(--m-bg);
+    color: #1a1a1a;
+    color: color-mix(in srgb, var(--m) 55%, #000);
+    font-weight: 600;
+    vertical-align: middle;
+    transition: background-color 0.3s ease;
 }
 
 .schedule-table .current-day {
