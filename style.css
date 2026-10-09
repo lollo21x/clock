@@ -706,6 +706,11 @@ button:hover {
             rgba(0, 0, 0, 0) 100%);
 }
 
+/* Tema Halloween: viola dal basso verso l'alto (stesso overlay del tema Natale) */
+body.halloween-theme #event-blur-overlay {
+    background: rgb(29, 11, 43);
+}
+
 /* Desktop and tablet adjustments */
 @media (min-width: 769px) {
     #scheduleModal {
