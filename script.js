@@ -641,6 +641,59 @@ function updateClock() {
     checkExpiredEvents();
 }
 
+// Se la materia dell'ora corrente occupa più ore consecutive (es. Scienze il martedì),
+// restituisce un segmento per ogni ora del blocco: { duration, fraction } con fraction 0..1.
+// Restituisce null per le ore singole.
+function getLessonBlockSegments(day, subjectIndex, materia, currentMinutes) {
+    const giorno = getOrarioAttivo()[day];
+    if (!giorno || !materia || materia === "Pausa") return null;
+
+    let first = subjectIndex;
+    let last = subjectIndex;
+    while (first > 0 && giorno[first - 1] === materia) first--;
+    while (last < giorno.length - 1 && giorno[last + 1] === materia) last++;
+    if (first === last) return null;
+
+    const ore = fasceOrarie.filter(f => f.nome.startsWith("Ora"));
+    const segments = [];
+    for (let k = first; k <= last; k++) {
+        const fascia = ore[k];
+        if (!fascia) return null;
+        const start = fascia.inizio.ore * 60 + fascia.inizio.minuti;
+        const end = fascia.fine.ore * 60 + fascia.fine.minuti;
+        const duration = end - start;
+        const elapsed = Math.min(Math.max(currentMinutes - start, 0), duration);
+        segments.push({ duration, fraction: elapsed / duration });
+    }
+    return segments;
+}
+
+// Disegna la barra a più tracce separate (una per ora) dentro la pillola
+function renderDoubleProgress(segments, color) {
+    const container = document.getElementById('materia-progress-double');
+    if (!container) return;
+
+    while (container.children.length < segments.length) {
+        const track = document.createElement('div');
+        track.className = 'progress-track';
+        const fill = document.createElement('div');
+        fill.className = 'progress-fill';
+        track.appendChild(fill);
+        container.appendChild(track);
+    }
+    while (container.children.length > segments.length) {
+        container.removeChild(container.lastChild);
+    }
+
+    segments.forEach((segment, i) => {
+        const track = container.children[i];
+        const fill = track.firstChild;
+        track.style.flexGrow = segment.duration;
+        fill.style.width = `${Math.floor(segment.fraction * 100)}%`;
+        fill.style.backgroundColor = color;
+    });
+}
+
 function updateScheduleWidget() {
     const now = new Date(Date.now() + serverTimeOffset);
     const day = now.getDay();
@@ -648,6 +701,7 @@ function updateScheduleWidget() {
     const scheduleWidget = document.getElementById('schedule-widget');
 
     let inSchoolTime = false;
+    let isDoubleBlock = false;
     for (let i = 0; i < fasceOrarie.length; i++) {
         const fascia = fasceOrarie[i];
         const startMinutes = fascia.inizio.ore * 60 + fascia.inizio.minuti;
@@ -659,7 +713,8 @@ function updateScheduleWidget() {
                 inSchoolTime = true;
                 const totalDuration = endMinutes - startMinutes;
                 const elapsed = currentMinutes - startMinutes;
-                const percentage = Math.floor((elapsed / totalDuration) * 100);
+                let percentage = Math.floor((elapsed / totalDuration) * 100);
+                let blockSegments = null;
 
                 let materia;
                 if (fascia.nome === "Ricreazione") {
@@ -669,6 +724,14 @@ function updateScheduleWidget() {
                     const subjectIndex = fasceOrarie.slice(0, i + 1).filter(f => f.nome.startsWith("Ora")).length - 1;
                     const orarioAttivo = getOrarioAttivo();
                     materia = (orarioAttivo[day] && orarioAttivo[day][subjectIndex]) ? orarioAttivo[day][subjectIndex] : "Pausa";
+
+                    // Ore consecutive della stessa materia: la percentuale copre tutto il blocco
+                    blockSegments = getLessonBlockSegments(day, subjectIndex, materia, currentMinutes);
+                    if (blockSegments) {
+                        const blockTotal = blockSegments.reduce((sum, s) => sum + s.duration, 0);
+                        const blockElapsed = blockSegments.reduce((sum, s) => sum + s.duration * s.fraction, 0);
+                        percentage = Math.floor((blockElapsed / blockTotal) * 100);
+                    }
                 }
 
                 let color = materiaColori[materia] || "#000000";
@@ -682,8 +745,13 @@ function updateScheduleWidget() {
                 document.getElementById('materia-nome').style.color = color;
                 document.getElementById('materia-percentuale').textContent = `${percentage}%`;
                 document.getElementById('materia-percentuale').style.color = color;
-                document.getElementById('materia-progress').style.width = `${percentage}%`;
-                document.getElementById('materia-progress').style.backgroundColor = color;
+                if (blockSegments) {
+                    isDoubleBlock = true;
+                    renderDoubleProgress(blockSegments, color);
+                } else {
+                    document.getElementById('materia-progress').style.width = `${percentage}%`;
+                    document.getElementById('materia-progress').style.backgroundColor = color;
+                }
 
                 break;
             }
@@ -691,6 +759,7 @@ function updateScheduleWidget() {
     }
     if (scheduleWidget) {
         scheduleWidget.dataset.visible = inSchoolTime;
+        scheduleWidget.dataset.double = isDoubleBlock;
     }
 }
 
@@ -1771,7 +1840,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const scheduleWidget = document.createElement('div');
     scheduleWidget.id = 'schedule-widget';
     scheduleWidget.className = 'widget-content';
-    scheduleWidget.innerHTML = `<div class="schedule-info"><span id="materia-nome"></span><span id="materia-percentuale"></span></div><div class="progress-bar-container"><div id="materia-progress"></div></div>`;
+    scheduleWidget.innerHTML = `<div class="schedule-info"><span id="materia-nome"></span><span id="materia-percentuale"></span></div><div class="progress-bar-container"><div id="materia-progress"></div></div><div id="materia-progress-double" class="progress-bar-double"></div>`;
     widgetContainer.appendChild(scheduleWidget);
 
     // Create events widget (third widget for cycling)
