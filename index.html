@@ -41,6 +41,8 @@
         media="(max-width: 768px)">
     <link rel="preload" as="image"
         href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763583944/st-wallpaper_jm6eya.jpg">
+    <link rel="preload" as="image"
+        href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1791554715/Cornice_di_Halloween_luminosa_3D_yclunk.png">
 </head>
 
 <body>
@@ -56,6 +58,8 @@
                 const savedBackground = localStorage.getItem('clockBackground');
                 if (savedBackground === 'stranger_things') {
                     document.body.style.backgroundColor = '#000000'; // Dark background for Stranger Things
+                } else if (savedBackground === 'halloween') {
+                    document.body.style.backgroundColor = 'rgb(29, 11, 43)'; // Dark purple background for Halloween
                 } else if (savedBackground === 'natale') {
                     document.body.style.backgroundColor = '#c0392b'; // Red background for Christmas
                 } else if (savedBackground === 'automatico') {
@@ -150,6 +154,7 @@
                     <option value="#F0C9F2">Viola</option>
                     <option value="natale">TEMA - Natale</option>
                     <option value="stranger_things">TEMA - Stranger Things</option>
+                    <option value="halloween">TEMA - Halloween</option>
                 </select>
                 <div class="toggle-container" id="animateBackgroundRow">
                     <span class="toggle-label">Anima lo sfondo</span>
@@ -512,7 +517,7 @@
                 </div>
             </div>
             <div class="modal-footer" style="padding: 15px; display: flex; justify-content: space-between; gap: 10px;">
-                <button id="editFromPreviewBtn" style="background-color: #1b912b; color: white;"><i
+                <button id="editFromPreviewBtn" style="background-color: var(--theme-color); color: white;"><i
                         class="fas fa-pencil-alt"></i> Modifica</button>
                 <button id="closePreviewModal"><i class="fas fa-times"></i> Chiudi</button>
             </div>
