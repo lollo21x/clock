@@ -83,7 +83,7 @@ const eventThemes = {
         dateColor: '#ffffff',
         applyButtonStyles: function () {
             // Tutti i pulsanti: sfondo bianco, icona rossa
-            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon', 'eventsCalendarIcon'];
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon', 'eventsCalendarIcon', 'editEventsMainIcon'];
             buttons.forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
@@ -222,6 +222,11 @@ const eventThemes = {
                 eventsCalendarIcon.style.backgroundColor = '#1b912b';
                 eventsCalendarIcon.style.color = 'white';
             }
+            const editEventsMainIcon = document.getElementById('editEventsMainIcon');
+            if (editEventsMainIcon) {
+                editEventsMainIcon.style.backgroundColor = '#1b912b';
+                editEventsMainIcon.style.color = 'white';
+            }
             const githubIcon = document.getElementById('githubIcon');
             if (githubIcon) {
                 githubIcon.style.backgroundColor = '#333';
@@ -318,7 +323,7 @@ const eventThemes = {
         dateColor: '#ffffff',
         applyButtonStyles: function () {
             // Tutti i pulsanti: sfondo bianco, icona maroon
-            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon', 'eventsCalendarIcon'];
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon', 'eventsCalendarIcon', 'editEventsMainIcon'];
             buttons.forEach(btnId => {
                 const btn = document.getElementById(btnId);
                 if (btn) {
@@ -450,6 +455,11 @@ const eventThemes = {
             if (eventsCalendarIcon) {
                 eventsCalendarIcon.style.backgroundColor = '#1b912b';
                 eventsCalendarIcon.style.color = 'white';
+            }
+            const editEventsMainIcon = document.getElementById('editEventsMainIcon');
+            if (editEventsMainIcon) {
+                editEventsMainIcon.style.backgroundColor = '#1b912b';
+                editEventsMainIcon.style.color = 'white';
             }
             const githubIcon = document.getElementById('githubIcon');
             if (githubIcon) {
@@ -1816,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v4.3';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v4.1';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub5d.lollo.dpdns.org');
