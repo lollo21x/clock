@@ -578,6 +578,38 @@ button:hover {
     transition: width 0.5s ease-out, background-color 0.5s ease;
 }
 
+/* Ore doppie: una traccia per ora, leggermente separate, stesso stile della barra singola */
+.progress-bar-double {
+    display: none;
+    width: 100%;
+    height: 8px;
+    gap: 4px;
+}
+
+#schedule-widget[data-double="true"] .progress-bar-container {
+    display: none;
+}
+
+#schedule-widget[data-double="true"] .progress-bar-double {
+    display: flex;
+}
+
+.progress-track {
+    flex: 1 1 0;
+    min-width: 0;
+    height: 8px;
+    background-color: #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    width: 0%;
+    border-radius: 10px;
+    transition: width 0.5s ease-out, background-color 0.5s ease;
+}
+
 .schedule-table-container {
     margin-bottom: 10px;
     background-color: #f4f4f4;
