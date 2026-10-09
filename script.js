@@ -536,6 +536,228 @@ const eventThemes = {
 
             document.body.classList.remove('stranger-things-theme');
         }
+    },
+    halloween: {
+        name: 'halloween',
+        desktopImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1791554715/Cornice_di_Halloween_luminosa_3D_yclunk.png',
+        mobileImage: 'https://res.cloudinary.com/dk0f2y0hu/image/upload/v1791554715/Cornice_di_Halloween_luminosa_3D_yclunk.png',
+        clockColor: '#ffffff',
+        dateColor: '#ffffff',
+        applyButtonStyles: function () {
+            // Tutti i pulsanti: sfondo bianco, icona viola
+            const buttons = ['backIcon', 'scheduleIcon', 'settingsIcon', 'infoIcon', 'calendarIcon', 'eventsCalendarIcon', 'editEventsMainIcon'];
+            buttons.forEach(btnId => {
+                const btn = document.getElementById(btnId);
+                if (btn) {
+                    btn.style.backgroundColor = '#ffffff';
+                    btn.style.color = '#7e22ce';
+                }
+            });
+            // GitHub: sfondo viola, icona bianca (invertito)
+            const githubBtn = document.getElementById('githubIcon');
+            if (githubBtn) {
+                githubBtn.style.backgroundColor = '#7e22ce';
+                githubBtn.style.color = '#ffffff';
+            }
+
+            // Cambia tutti i verdi in viola nella tabella orario
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    const bgColor = th.style.backgroundColor || window.getComputedStyle(th).backgroundColor;
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)' || bgColor === '' || !th.style.backgroundColor) {
+                        th.style.backgroundColor = '#7e22ce';
+                    }
+                });
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                        td.style.backgroundColor = '#7e22ce';
+                        td.style.color = 'white';
+                    }
+                });
+            }
+
+            // Cambia il colore del pulsante "Salva" nelle impostazioni
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#7e22ce';
+            }
+
+            // Cambia il colore del toggle quando è attivo
+            const toggles = document.querySelectorAll('.toggle input:checked + .toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '#7e22ce';
+            });
+
+            // Cambia pulsanti "Chiudi"
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#7e22ce';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#7e22ce';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#7e22ce';
+            }
+
+            // Cambia colore testo sincronizzazione
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus) {
+                if (!syncStatus.dataset.originalColor) {
+                    const currentColor = syncStatus.style.color || window.getComputedStyle(syncStatus).color;
+                    syncStatus.dataset.originalColor = currentColor;
+                }
+                if (syncStatus.style.color !== '#ff6b6b' && syncStatus.style.color !== 'rgb(255, 107, 107)') {
+                    syncStatus.style.color = '#7e22ce';
+                }
+            }
+
+            // Cambia animazione sincronizzazione
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = '#7e22ce';
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = '#a855f7'; // Maroon più chiaro
+            }
+
+            // Cambia barra di progresso materia se è verde
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#1b912b' || bgColor === 'rgb(27, 145, 43)') {
+                    materiaProgress.style.backgroundColor = '#7e22ce';
+                }
+            }
+
+            // Cambia selezione testo
+            const style = document.createElement('style');
+            style.id = 'halloween-selection-style';
+            style.textContent = '::selection { background-color: #7e22ce !important; } ::-moz-selection { background-color: #7e22ce !important; }';
+            document.head.appendChild(style);
+
+            // Aggiungi classe al body
+            document.body.classList.add('halloween-theme');
+        },
+        removeButtonStyles: function () {
+            // Ripristina stili originali (copia da stranger_things.removeButtonStyles)
+            const backIcon = document.getElementById('backIcon');
+            if (backIcon) {
+                backIcon.style.backgroundColor = '#1b912b';
+                backIcon.style.color = 'white';
+            }
+            const scheduleIcon = document.getElementById('scheduleIcon');
+            if (scheduleIcon) {
+                scheduleIcon.style.backgroundColor = '#1b912b';
+                scheduleIcon.style.color = 'white';
+            }
+            const settingsIcon = document.getElementById('settingsIcon');
+            if (settingsIcon) {
+                settingsIcon.style.backgroundColor = '#1b912b';
+                settingsIcon.style.color = 'white';
+            }
+            const infoIcon = document.getElementById('infoIcon');
+            if (infoIcon) {
+                infoIcon.style.backgroundColor = '#1b912b';
+                infoIcon.style.color = 'white';
+            }
+            const calendarIcon = document.getElementById('calendarIcon');
+            if (calendarIcon) {
+                calendarIcon.style.backgroundColor = '#1b912b';
+                calendarIcon.style.color = 'white';
+            }
+            const eventsCalendarIcon = document.getElementById('eventsCalendarIcon');
+            if (eventsCalendarIcon) {
+                eventsCalendarIcon.style.backgroundColor = '#1b912b';
+                eventsCalendarIcon.style.color = 'white';
+            }
+            const editEventsMainIcon = document.getElementById('editEventsMainIcon');
+            if (editEventsMainIcon) {
+                editEventsMainIcon.style.backgroundColor = '#1b912b';
+                editEventsMainIcon.style.color = 'white';
+            }
+            const githubIcon = document.getElementById('githubIcon');
+            if (githubIcon) {
+                githubIcon.style.backgroundColor = '#333';
+                githubIcon.style.color = 'white';
+            }
+
+            const scheduleTable = document.getElementById('scheduleTable');
+            if (scheduleTable) {
+                const ths = scheduleTable.querySelectorAll('th');
+                ths.forEach(th => {
+                    th.style.backgroundColor = '#1b912b';
+                });
+                const tds = scheduleTable.querySelectorAll('td');
+                tds.forEach(td => {
+                    const bgColor = td.style.backgroundColor || window.getComputedStyle(td).backgroundColor;
+                    if (bgColor === '#7e22ce' || bgColor === 'rgb(126, 34, 206)') {
+                        td.style.backgroundColor = '';
+                        td.style.color = '';
+                    }
+                });
+            }
+
+            const closeSettingsBtn = document.getElementById('closeSettingsModal');
+            if (closeSettingsBtn) {
+                closeSettingsBtn.style.backgroundColor = '#1b912b';
+            }
+
+            const toggles = document.querySelectorAll('.toggle-slider');
+            toggles.forEach(toggle => {
+                toggle.style.backgroundColor = '';
+            });
+
+            const closeInfoBtn = document.getElementById('closeInfoModal');
+            if (closeInfoBtn) {
+                closeInfoBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeScheduleBtn = document.getElementById('closeScheduleModal');
+            if (closeScheduleBtn) {
+                closeScheduleBtn.style.backgroundColor = '#1b912b';
+            }
+            const closeCalendarBtn = document.getElementById('closeCalendarModal');
+            if (closeCalendarBtn) {
+                closeCalendarBtn.style.backgroundColor = '#1b912b';
+            }
+
+            const syncStatus = document.getElementById('sync-status');
+            if (syncStatus && syncStatus.dataset.originalColor) {
+                syncStatus.style.color = syncStatus.dataset.originalColor;
+                delete syncStatus.dataset.originalColor;
+            }
+
+            const pulseInner = document.querySelector('.pulse-inner');
+            if (pulseInner) {
+                pulseInner.style.backgroundColor = 'rgb(74, 222, 128)';
+            }
+            const pulseFixed = document.querySelector('.pulse-fixed');
+            if (pulseFixed) {
+                pulseFixed.style.backgroundColor = 'rgb(74, 222, 128)';
+            }
+
+            const materiaProgress = document.getElementById('materia-progress');
+            if (materiaProgress) {
+                const bgColor = materiaProgress.style.backgroundColor || window.getComputedStyle(materiaProgress).backgroundColor;
+                if (bgColor === '#7e22ce' || bgColor === 'rgb(126, 34, 206)') {
+                    materiaProgress.style.backgroundColor = '';
+                }
+            }
+
+            const selectionStyle = document.getElementById('halloween-selection-style');
+            if (selectionStyle) {
+                selectionStyle.remove();
+            }
+
+            document.body.classList.remove('halloween-theme');
+        }
     }
 };
 
@@ -750,6 +972,8 @@ function updateScheduleWidget() {
                     color = '#dc2626';
                 } else if (currentBackgroundMode === 'stranger_things' && (color === '#1b912b' || color === 'rgb(27, 145, 43)')) {
                     color = '#800000';
+                } else if (currentBackgroundMode === 'halloween' && (color === '#1b912b' || color === 'rgb(27, 145, 43)')) {
+                    color = '#7e22ce';
                 }
                 document.getElementById('materia-nome').textContent = materia;
                 document.getElementById('materia-nome').style.color = color;
@@ -855,6 +1079,7 @@ function updateSyncStatus(message, isError = false) {
             // Se siamo in modalità natalizia o stranger things, usa colore specifico
             const isChristmasTheme = currentBackgroundMode === 'natale';
             const isStrangerThingsTheme = currentBackgroundMode === 'stranger_things';
+            const isHalloweenTheme = currentBackgroundMode === 'halloween';
             if (isError) {
                 status.style.color = '#ff6b6b';
             } else {
@@ -862,6 +1087,8 @@ function updateSyncStatus(message, isError = false) {
                     status.style.color = '#dc2626';
                 } else if (isStrangerThingsTheme) {
                     status.style.color = '#800000';
+                } else if (isHalloweenTheme) {
+                    status.style.color = '#7e22ce';
                 } else {
                     status.style.color = '#1b912b';
                 }
@@ -1036,6 +1263,8 @@ function applyBackground(color) {
         themeColor = '#dc2626'; // Christmas Red
     } else if (color === 'stranger_things') {
         themeColor = '#800000'; // Stranger Things Dark Red
+    } else if (color === 'halloween') {
+        themeColor = '#7e22ce'; // Halloween Purple
     }
     document.documentElement.style.setProperty('--theme-color', themeColor);
 
@@ -1123,8 +1352,8 @@ function applyThemeToggleColor(input) {
     if (!input) return;
     const slider = input.nextElementSibling;
     if (!slider) return;
-    if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
-        const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
+    if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things' || currentBackgroundMode === 'halloween') && eventThemes[currentBackgroundMode]) {
+        const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : (currentBackgroundMode === 'halloween' ? '#7e22ce' : '#800000');
         slider.style.backgroundColor = input.checked ? activeColor : '#ccc';
     }
 }
@@ -2625,9 +2854,9 @@ document.addEventListener('DOMContentLoaded', function () {
         showOffsetToggle.addEventListener('change', (e) => {
             localStorage.setItem('showOffset', e.target.checked);
             // Se siamo in modalità natalizia o stranger things, aggiorna il colore del toggle
-            if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things') && eventThemes[currentBackgroundMode]) {
+            if ((currentBackgroundMode === 'natale' || currentBackgroundMode === 'stranger_things' || currentBackgroundMode === 'halloween') && eventThemes[currentBackgroundMode]) {
                 const toggle = e.target.nextElementSibling;
-                const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : '#800000';
+                const activeColor = currentBackgroundMode === 'natale' ? '#dc2626' : (currentBackgroundMode === 'halloween' ? '#7e22ce' : '#800000');
                 if (toggle && e.target.checked) {
                     toggle.style.backgroundColor = activeColor;
                 } else if (toggle) {
