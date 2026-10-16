@@ -862,6 +862,7 @@ function updateClock() {
     const dateOptions = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
     const dateStr = now.toLocaleDateString('it-IT', dateOptions);
     document.getElementById('date').textContent = dateStr;
+    updateClockVisuals(now);
     updateScheduleWidget();
     if (currentBackgroundMode === 'automatico' && AUTOMATIC_BACKGROUND_ENABLED) {
         updateAutomaticBackground();
@@ -2055,7 +2056,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const infoContent = document.querySelector('#infoModal p');
     if (infoContent) {
-        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v4.3';
+        infoContent.innerHTML = 'Questo orologio digitale mostra l\'ora esatta di Roma (Italia) con precisione al secondo. ' + 'Sincronizzato per garantire la massima precisione.' + '<br><br>' + 'Creato da <a href="https://lollo.dpdns.org/" target="_blank" rel="noopener noreferrer" style="color: inherit; text-decoration: underline;">lollo21</a> - v5.1';
     }
     if (githubIcon) githubIcon.addEventListener('click', () => window.open('https://github.com/lollo21x/clock', '_blank'));
     if (backIcon) backIcon.addEventListener('click', () => window.location.href = 'https://hub5d.lollo.dpdns.org');
@@ -2407,7 +2408,16 @@ document.addEventListener('DOMContentLoaded', function () {
     }, 60000);
 
     // Caricamento Impostazioni
-    const savedFont = localStorage.getItem('clockFont') || 'Montserrat';
+    let savedFont = localStorage.getItem('clockFont') || 'Bricolage Grotesque';
+    // v5.1: il vecchio predefinito (Montserrat) passa al nuovo (Bricolage Grotesque) una sola volta;
+    // chi lo sceglie di nuovo dopo l'aggiornamento lo mantiene.
+    if (!localStorage.getItem('clockFontMigrated51')) {
+        if (savedFont === 'Montserrat') {
+            savedFont = 'Bricolage Grotesque';
+            localStorage.setItem('clockFont', savedFont);
+        }
+        localStorage.setItem('clockFontMigrated51', '1');
+    }
     const savedWeight = localStorage.getItem('clockWeight') || '400';
     const savedBackground = localStorage.getItem('clockBackground') || 'automatico';
     const showOffset = localStorage.getItem('showOffset') === 'true';
@@ -2842,7 +2852,7 @@ document.addEventListener('DOMContentLoaded', function () {
     if (fontSelect) {
         fontSelect.addEventListener('change', function () {
             toggleWeightSelect(this.value);
-            const weight = this.value === 'Montserrat' ? '400' : weightSelect.value;
+            const weight = isDefaultWeightFont(this.value) ? '400' : weightSelect.value;
             applyFont(this.value, weight);
         });
     }
@@ -2884,17 +2894,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    // Bricolage Grotesque (predefinito) e Montserrat (il font storico) usano gli stili del CSS: nessun override
+    function isDefaultWeightFont(font) {
+        return font === 'Bricolage Grotesque' || font === 'Montserrat';
+    }
+
     function applyFont(font, weight = '400') {
         const clock = document.querySelector('.clock');
         const date = document.querySelector('.date');
-        const fontFamily = font === 'Montserrat' ? '' : font + ', sans-serif';
-        const fontWeight = font === 'Montserrat' ? '' : weight;
+        const fontFamily = isDefaultWeightFont(font) ? '' : font + ', sans-serif';
+        const fontWeight = isDefaultWeightFont(font) ? '' : weight;
+        document.body.classList.toggle('font-bricolage', font === 'Bricolage Grotesque');
         if (clock) { clock.style.fontFamily = fontFamily; clock.style.fontWeight = fontWeight; }
         if (date) { date.style.fontFamily = fontFamily; date.style.fontWeight = fontWeight; }
+        fitClock();
     }
 
     function toggleWeightSelect(font) {
-        if (weightSelect) weightSelect.style.display = font === 'Montserrat' ? 'none' : 'block';
+        if (weightSelect) weightSelect.style.display = isDefaultWeightFont(font) ? 'none' : 'block';
     }
 
     // Colora ogni casella dell'orario con il colore della sua materia
@@ -3366,4 +3383,230 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Initial check
     updateOfflineStatus();
+});
+
+
+/* ============================================================================
+ * v5.1 — AGGIUNTE
+ * Solo codice nuovo: legge dati già presenti (orarioScolastico, fasceOrarie,
+ * materiaColori) e non modifica la logica esistente.
+ *   - righello dei secondi (#rulerTicks)
+ *   - striscia dell'orario scolastico (#day-ribbon): visibile solo durante le lezioni
+ *     e solo se attiva nelle Impostazioni ("Orario scolastico in alto")
+ *   - orologio grande (toggle nelle Impostazioni, classe body.clock-large)
+ *   - variabile CSS --subject: colore della materia in corso (solo sfondo automatico)
+ * ============================================================================ */
+
+// Testo scuro o chiaro in base al colore di fondo
+function readableOn(hex) {
+    const c = hexToRgb(hex);
+    if (!c) return '#ffffff';
+    const yiq = (c.r * 299 + c.g * 587 + c.b * 114) / 1000;
+    return yiq > 150 ? '#1a1a1a' : '#ffffff';
+}
+
+// Segmenti della giornata: ore consecutive della stessa materia vengono unite
+function buildDaySegments(day) {
+    const giorno = getOrarioAttivo()[day];
+    if (!giorno) return [];
+    const raw = [];
+    let oraIndex = 0;
+    fasceOrarie.forEach(f => {
+        const start = f.inizio.ore * 60 + f.inizio.minuti;
+        const end = f.fine.ore * 60 + f.fine.minuti;
+        if (f.nome === 'Ricreazione') {
+            raw.push({ materia: 'Ricreazione', start, end, isBreak: true });
+        } else {
+            raw.push({ materia: giorno[oraIndex] || 'Pausa', start, end, isBreak: false });
+            oraIndex++;
+        }
+    });
+    const merged = [];
+    raw.forEach(seg => {
+        const prev = merged[merged.length - 1];
+        if (prev && !prev.isBreak && !seg.isBreak && prev.materia === seg.materia) {
+            prev.end = seg.end;
+        } else {
+            merged.push({ ...seg });
+        }
+    });
+    return merged;
+}
+
+var ribbonState = { day: null, segments: [] };
+
+function isDayRibbonEnabled() {
+    return localStorage.getItem('showDayRibbon') !== 'false';
+}
+
+function updateDayRibbon(now) {
+    const ribbon = document.getElementById('day-ribbon');
+    const track = document.getElementById('ribbonTrack');
+    const needle = document.getElementById('ribbonNeedle');
+    if (!ribbon || !track || !needle) return;
+
+    const day = now.getDay();
+    let segs = [];
+    if (day >= 1 && day <= 6) {            // la domenica non ci sono lezioni
+        if (ribbonState.day !== day) {     // ricostruisce solo quando cambia il giorno
+            track.innerHTML = '';
+            ribbonState.segments = buildDaySegments(day);
+            ribbonState.segments.forEach(seg => {
+                const el = document.createElement('div');
+                el.className = 'ribbon-seg' + (seg.isBreak ? ' is-break' : '');
+                const forte = materiaColori[seg.materia] || '#757575';
+                el.style.flexGrow = String(seg.end - seg.start);
+                el.style.setProperty('--m', forte);
+                el.style.setProperty('--m-fg', readableOn(forte));
+                const name = document.createElement('span');
+                name.className = 'seg-name';
+                name.textContent = seg.materia;
+                name.dataset.short = seg.materia.slice(0, 3);
+                el.appendChild(name);
+                track.appendChild(el);
+                seg.el = el;
+            });
+            ribbonState.day = day;
+        }
+        segs = ribbonState.segments;
+    } else {
+        ribbonState.day = null;
+    }
+
+    // Visibile solo durante l'orario scolastico E se attiva nelle Impostazioni
+    const minutes = now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    const inSchool = segs.length > 0 && minutes >= segs[0].start && minutes < segs[segs.length - 1].end;
+    const visible = isDayRibbonEnabled() && inSchool;
+    if ((ribbon.dataset.visible === 'true') !== visible) {
+        ribbon.dataset.visible = String(visible);
+        fitClock();                        // l'orologio grande tiene conto dello spazio occupato
+    }
+    if (!visible) return;
+
+    segs.forEach(seg => {
+        const state = minutes >= seg.end ? 'past' : (minutes >= seg.start ? 'now' : 'next');
+        if (seg.el.dataset.state !== state) seg.el.dataset.state = state;
+    });
+
+    // Posizione dell'indicatore dentro il segmento corrente
+    const cur = segs.find(s => minutes >= s.start && minutes < s.end);
+    if (cur) {
+        const x = cur.el.offsetLeft + ((minutes - cur.start) / (cur.end - cur.start)) * cur.el.offsetWidth;
+        needle.style.transform = `translateX(${x}px)`;
+    }
+}
+
+// Righello dei secondi: 60 tacche vere (una per secondo), si accendono una a una
+// e si spengono tutte al giro del minuto.
+var rulerTicks = null;
+
+function buildRulerTicks() {
+    const box = document.getElementById('rulerTicks');
+    if (!box) return null;
+    box.innerHTML = '';
+    const frag = document.createDocumentFragment();
+    for (let i = 0; i < 60; i++) {
+        const t = document.createElement('i');
+        if (i % 5 === 0) t.className = 'major';
+        frag.appendChild(t);
+    }
+    box.appendChild(frag);
+    return Array.from(box.children);
+}
+
+function updateSecondsRuler(now) {
+    if (!rulerTicks || !rulerTicks.length) rulerTicks = buildRulerTicks();
+    if (!rulerTicks) return;
+    const s = now.getSeconds();
+    for (let i = 0; i < 60; i++) {
+        const on = i <= s;
+        if (rulerTicks[i].classList.contains('on') !== on) rulerTicks[i].classList.toggle('on', on);
+    }
+}
+
+// Colore della materia in corso (usato dalle tacche): solo con lo sfondo automatico
+function updateSubjectColor(now) {
+    const root = document.documentElement;
+    const materia = (currentBackgroundMode === 'automatico' && AUTOMATIC_BACKGROUND_ENABLED)
+        ? getMateriaForCurrentTime(now) : null;
+    const forte = materia && materiaColori[materia];
+    if (forte) root.style.setProperty('--subject', forte);
+    else root.style.removeProperty('--subject');
+}
+
+function updateClockVisuals(now) {
+    updateSubjectColor(now);
+    updateSecondsRuler(now);
+    updateDayRibbon(now);
+}
+
+// Orologio grande: adatta la grandezza allo spazio disponibile (larghezza e altezza),
+// tenendo conto della striscia in alto e dei pulsanti in basso. L'orologio piccolo non viene toccato.
+function fitClock() {
+    const root = document.documentElement;
+    const clock = document.querySelector('.clock');
+    const container = document.querySelector('.clock-container');
+    root.style.setProperty('--fit', '1');
+    if (!clock || !container || !document.body.classList.contains('clock-large')) return;
+
+    const ribbon = document.getElementById('day-ribbon');
+    const ribbonVisible = ribbon && ribbon.dataset.visible === 'true';
+    const reserve = Math.max(ribbonVisible ? ribbon.offsetHeight + 40 : 0, 90);
+    const availW = document.documentElement.clientWidth * 0.94;
+    const availH = Math.max(120, window.innerHeight - 2 * reserve);
+
+    // larghezza reale del contenuto (scrollWidth non conta l'overflow a sinistra di un flex centrato)
+    clock.style.width = 'max-content';
+    const needW = clock.getBoundingClientRect().width;
+    clock.style.width = '';
+    let fit = needW > availW ? Math.max(0.25, availW / needW) : 1;
+    root.style.setProperty('--fit', String(fit));
+
+    // altezza: qualche passata, perché data e righello non scalano con l'orologio
+    for (let i = 0; i < 4; i++) {
+        const needH = container.getBoundingClientRect().height;
+        if (needH <= availH) break;
+        fit = Math.max(0.25, fit * (availH / needH) * 0.97);
+        root.style.setProperty('--fit', String(fit));
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Orologio grande (si salva subito, come gli altri toggle)
+    const largeClockToggle = document.getElementById('largeClockToggle');
+    const isLarge = localStorage.getItem('clockLarge') === 'true';
+    document.body.classList.toggle('clock-large', isLarge);
+    if (largeClockToggle) {
+        largeClockToggle.checked = isLarge;
+        applyThemeToggleColor(largeClockToggle);
+        largeClockToggle.addEventListener('change', (e) => {
+            localStorage.setItem('clockLarge', e.target.checked ? 'true' : 'false');
+            document.body.classList.toggle('clock-large', e.target.checked);
+            applyThemeToggleColor(e.target);
+            fitClock();
+            setTimeout(fitClock, 120);
+        });
+    }
+
+    // Striscia dell'orario in alto (si salva subito; fuori dall'orario scolastico resta comunque nascosta)
+    const showDayRibbonToggle = document.getElementById('showDayRibbonToggle');
+    if (showDayRibbonToggle) {
+        showDayRibbonToggle.checked = isDayRibbonEnabled();
+        applyThemeToggleColor(showDayRibbonToggle);
+        showDayRibbonToggle.addEventListener('change', (e) => {
+            localStorage.setItem('showDayRibbon', e.target.checked ? 'true' : 'false');
+            applyThemeToggleColor(e.target);
+            updateDayRibbon(new Date(Date.now() + serverTimeOffset));
+        });
+    }
+
+    // Adattamento dell'orologio grande: all'avvio, al resize, al caricamento dei font
+    fitClock();
+    window.addEventListener('resize', fitClock);
+    if (document.fonts) {
+        document.fonts.ready.then(fitClock);
+        document.fonts.addEventListener('loadingdone', fitClock);
+    }
+    const weightSel = document.getElementById('weightSelect');
+    if (weightSel) weightSel.addEventListener('change', () => setTimeout(fitClock, 60));
 });
