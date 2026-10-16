@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Clock" />
     <link rel="manifest" href="icons/site.webmanifest" />
-    <link rel="stylesheet" href="style.css?v=3.1">
+    <link rel="stylesheet" href="style.css?v=5.1">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
@@ -33,6 +33,8 @@
         rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wdth,wght@12..96,75..100,200..800&display=swap"
+        rel="stylesheet">
     <link rel="preload" as="image"
         href="https://res.cloudinary.com/dk0f2y0hu/image/upload/v1763217481/christmas-desktop_wel7lu.png"
         media="(min-width: 769px)">
@@ -55,6 +57,13 @@
     <script>
         (function () {
             try {
+                // v5.1: font Bricolage Grotesque predefinito (anche per chi aveva salvato il vecchio Montserrat) e orologio grande
+                const savedFontInit = localStorage.getItem('clockFont');
+                if (!savedFontInit || savedFontInit === 'Bricolage Grotesque' ||
+                    (savedFontInit === 'Montserrat' && !localStorage.getItem('clockFontMigrated51'))) {
+                    document.body.classList.add('font-bricolage');
+                }
+                if (localStorage.getItem('clockLarge') === 'true') document.body.classList.add('clock-large');
                 const savedBackground = localStorage.getItem('clockBackground');
                 if (savedBackground === 'stranger_things') {
                     document.body.style.backgroundColor = '#000000'; // Dark background for Stranger Things
@@ -74,10 +83,22 @@
             }
         })();
     </script>
+    <!-- v5.1: striscia dell'orario di oggi (visibile solo durante le lezioni e se attiva nelle Impostazioni) -->
+    <div id="day-ribbon" class="day-ribbon" data-visible="false" role="img" aria-label="Orario di oggi">
+        <div id="ribbonTrack" class="ribbon-track"></div>
+        <div id="ribbonNeedle" class="ribbon-needle"></div>
+    </div>
+
     <div class="clock-container">
-        <div class="clock">
-            <span id="hours">00</span><span class="separator">:</span><span id="minutes">00</span><span
-                class="separator">:</span><span id="seconds">00</span>
+        <div class="clock-stack">
+            <div class="clock">
+                <span id="hours">00</span><span class="separator">:</span><span id="minutes">00</span><span
+                    class="separator sep-sec">:</span><span id="seconds">00</span>
+            </div>
+            <!-- v5.1: righello dei secondi (60 tacche create da script.js) -->
+            <div class="ruler" aria-hidden="true">
+                <div class="ruler-ticks" id="rulerTicks"></div>
+            </div>
         </div>
         <div class="date" id="date"></div>
     </div>
@@ -122,6 +143,7 @@
             <div class="settings-section">
                 <h4>Font</h4>
                 <select id="fontSelect">
+                    <option value="Bricolage Grotesque">Bricolage Grotesque</option>
                     <option value="Montserrat">Montserrat</option>
                     <option value="Space Mono">Space Mono</option>
                     <option value="Syne">Syne</option>
@@ -135,6 +157,13 @@
                     <option value="600">Semi-Grassetto</option>
                     <option value="900">Grassetto</option>
                 </select>
+                <div class="toggle-container">
+                    <span class="toggle-label">Orologio grande</span>
+                    <label class="toggle" for="largeClockToggle">
+                        <input type="checkbox" id="largeClockToggle">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
             </div>
             <div class="settings-section">
                 <h4>Sfondo</h4>
@@ -178,6 +207,13 @@
                     <span class="toggle-label">Mostra orario scolastico</span>
                     <label class="toggle" for="showScheduleToggle">
                         <input type="checkbox" id="showScheduleToggle" checked>
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="toggle-container">
+                    <span class="toggle-label">Orario scolastico in alto</span>
+                    <label class="toggle" for="showDayRibbonToggle">
+                        <input type="checkbox" id="showDayRibbonToggle" checked>
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
@@ -561,7 +597,7 @@
             </div>
         </div>
 
-        <script src="script.js?v=4.2"></script>
+        <script src="script.js?v=5.1"></script>
 </body>
 
 </html>
