@@ -2094,3 +2094,383 @@ body.bg-animated:not(.bg-paused) #bg-animation .bg-orb {
         background-position: 40% 50%;
     }
 }
+
+
+/* ============================================================================
+   v5.1 — AGGIUNTE
+   Tutte le regole sotto sono aggiunte: nessuna regola precedente è stata modificata.
+   - font Bricolage Grotesque predefinito per orologio e data
+   - righello dei secondi
+   - orologio grande (body.clock-large, attivabile nelle Impostazioni)
+   - striscia dell'orario scolastico in alto (#day-ribbon)
+   ============================================================================ */
+
+/* --- Font predefinito di orologio e data (solo questi due: il resto resta Montserrat) --- */
+body.font-bricolage .clock {
+    font-family: 'Bricolage Grotesque', 'Montserrat', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    font-variation-settings: "wdth" 100, "opsz" 72;
+    font-variant-numeric: tabular-nums;
+}
+
+body.font-bricolage .clock .separator {
+    margin: 0 0.14em;
+    position: relative;
+    top: -0.04em;
+    opacity: 0.85;
+}
+
+body.font-bricolage .date {
+    font-family: 'Bricolage Grotesque', 'Montserrat', sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    font-variation-settings: "wdth" 100, "opsz" 36;
+}
+
+/* --- Righello dei secondi: 60 tacche, ogni 5 una più lunga --- */
+.clock-stack {
+    display: flex;
+    flex-direction: column;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.ruler {
+    --tick-on: var(--subject, var(--theme-color, #1b912b));
+    position: relative;
+    height: clamp(12px, 1.7vh, 17px);
+    margin-top: clamp(10px, 1.7vh, 18px);
+    color: #1a1a1a;
+}
+
+@supports (color: color-mix(in srgb, red, blue)) {
+    .ruler {
+        --tick-on: color-mix(in srgb, var(--subject, var(--theme-color, #1b912b)) 88%, #1a1a1a);
+    }
+}
+
+.ruler-ticks {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    align-items: flex-end;
+}
+
+.ruler-ticks i {
+    position: relative;
+    flex: 1 1 0;
+    min-width: 0;
+    height: 100%;
+}
+
+.ruler-ticks i::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 2px;
+    height: 55%;
+    margin-left: -1px;
+    border-radius: 1px;
+    background: currentColor;
+    opacity: 0.22;
+    transition: opacity 0.35s ease, background-color 0.35s ease;
+}
+
+.ruler-ticks i.major::before {
+    height: 100%;
+    width: 3px;
+    margin-left: -1.5px;
+}
+
+.ruler-ticks i.on::before {
+    opacity: 1;
+    background: var(--tick-on);
+}
+
+/* --- Orologio grande --- */
+body.clock-large .clock {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: calc(min(38vw, 57vh) * var(--fit, 1));
+    line-height: 0.88;
+    letter-spacing: -0.04em;
+    text-shadow: none;
+    font-variant-numeric: tabular-nums;
+    font-variation-settings: "wdth" 75, "opsz" 96;
+}
+
+body.clock-large .clock .separator {
+    margin: 0 0.07em;
+    position: relative;
+    top: -0.05em;
+}
+
+body.clock-large .clock .sep-sec {
+    display: none;
+}
+
+body.clock-large #seconds {
+    font-size: 0.23em;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-left: 0.3em;
+    opacity: 0.72;
+    font-variation-settings: "wdth" 90, "opsz" 48;
+}
+
+body.clock-large .ruler {
+    height: clamp(18px, 3vh, 34px);
+    margin-top: clamp(16px, 3.2vh, 38px);
+}
+
+body.clock-large .ruler-ticks i::before {
+    width: 3px;
+    margin-left: -1.5px;
+}
+
+body.clock-large .ruler-ticks i.major::before {
+    width: 4px;
+    margin-left: -2px;
+}
+
+body.clock-large .date {
+    margin-top: clamp(16px, 3vh, 36px);
+    font-size: clamp(19px, 2.9vw, 54px);
+}
+
+/* Orologio grande in verticale: ore sopra, minuti sotto */
+@media (orientation: portrait) {
+    body.clock-large .clock-container,
+    body.clock-large .clock-stack {
+        width: 100%;
+    }
+
+    body.clock-large .clock {
+        flex-direction: column;
+        align-items: center;
+        font-size: calc(min(62vw, 31vh) * var(--fit, 1));
+        line-height: 0.8;
+    }
+
+    body.clock-large .clock .separator {
+        display: none;
+    }
+
+    body.clock-large #seconds {
+        margin: 0.34em 0 0;
+        font-size: 0.17em;
+        letter-spacing: 0.02em;
+    }
+
+    body.clock-large .ruler {
+        margin-top: clamp(14px, 2.4vh, 28px);
+    }
+
+    body.clock-large .date {
+        font-size: clamp(18px, 5.2vw, 34px);
+    }
+}
+
+/* Telefono in orizzontale: poco spazio verticale */
+@media (max-height: 480px) and (orientation: landscape) {
+    body.clock-large .clock {
+        font-size: calc(min(30vw, 40vh) * var(--fit, 1));
+    }
+
+    body.clock-large .date {
+        margin-top: 8px;
+        font-size: clamp(16px, 2.6vw, 26px);
+    }
+
+    body.clock-large .ruler {
+        margin-top: 10px;
+        height: 16px;
+    }
+}
+
+/* --- Striscia dell'orario scolastico --- */
+.day-ribbon {
+    --ribbon-h: clamp(40px, 5.4vh, 60px);
+    --seg-bg: rgba(255, 255, 255, 0.55);
+    --seg-fg: #1a1a1a;
+    --seg-line: rgba(0, 0, 0, 0.07);
+    --needle: #1a1a1a;
+    --needle-halo: rgba(255, 255, 255, 0.9);
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 20px);
+    left: 20px;
+    right: 20px;
+    z-index: 2;
+    padding-bottom: 14px;
+    font-family: 'Montserrat', sans-serif;
+    transition: opacity 0.6s ease, visibility 0.6s ease;
+}
+
+.day-ribbon[data-visible="false"] {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.ribbon-track {
+    position: relative;
+    display: flex;
+    gap: clamp(4px, 0.5vw, 8px);
+    height: var(--ribbon-h);
+}
+
+.ribbon-seg {
+    flex: 1 1 0;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.6em;
+    padding: 0 clamp(8px, 1vw, 18px);
+    border-radius: 14px;
+    border: 1.5px solid var(--seg-line);
+    background: var(--seg-bg);
+    color: var(--seg-fg);
+    font-size: clamp(12px, 1.25vw, 22px);
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    transition: background-color 0.6s ease, color 0.6s ease, opacity 0.6s ease, border-color 0.6s ease;
+}
+
+.ribbon-seg::before {
+    content: '';
+    flex: none;
+    width: 0.55em;
+    height: 0.55em;
+    border-radius: 50%;
+    background: var(--m);
+}
+
+.ribbon-seg .seg-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ribbon-seg[data-state="past"] {
+    opacity: 0.42;
+}
+
+.ribbon-seg[data-state="now"] {
+    background: var(--m);
+    color: var(--m-fg);
+    border-color: var(--m);
+    font-weight: 700;
+}
+
+.ribbon-seg[data-state="now"]::before {
+    background: var(--m-fg);
+}
+
+.ribbon-seg.is-break {
+    padding: 0;
+    justify-content: center;
+}
+
+.ribbon-seg.is-break .seg-name {
+    display: none;
+}
+
+/* L'indicatore dell'ora corrente sta sotto la striscia e non copre le scritte */
+.ribbon-needle {
+    position: absolute;
+    z-index: 2;
+    top: calc(var(--ribbon-h) - 7px);
+    left: 0;
+    width: 4px;
+    height: 22px;
+    margin-left: -2px;
+    border-radius: 2px;
+    background: var(--needle);
+    box-shadow: 0 0 0 2px var(--needle-halo);
+    transition: transform 1s linear;
+    pointer-events: none;
+}
+
+.ribbon-needle::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    width: 13px;
+    height: 13px;
+    margin-left: -6.5px;
+    border-radius: 50%;
+    background: var(--needle);
+    box-shadow: 0 0 0 2px var(--needle-halo);
+}
+
+/* Temi con foto: testo e righello bianchi, striscia vetrosa (le classi le imposta già script.js) */
+body.christmas-theme .day-ribbon,
+body.stranger-things-theme .day-ribbon,
+body.halloween-theme .day-ribbon {
+    --seg-bg: rgba(255, 255, 255, 0.2);
+    --seg-fg: #ffffff;
+    --seg-line: rgba(255, 255, 255, 0.15);
+    --needle: #ffffff;
+    --needle-halo: rgba(0, 0, 0, 0.35);
+}
+
+body.christmas-theme .ribbon-seg,
+body.stranger-things-theme .ribbon-seg,
+body.halloween-theme .ribbon-seg {
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+body.christmas-theme .ruler,
+body.stranger-things-theme .ruler,
+body.halloween-theme .ruler {
+    color: #ffffff;
+    --tick-on: #ffffff;
+}
+
+/* Mobile: nella striscia si leggono le prime 3 lettere della materia */
+@media (max-width: 768px) {
+    .day-ribbon {
+        left: 14px;
+        right: 14px;
+        top: calc(env(safe-area-inset-top, 0px) + 14px);
+        --ribbon-h: 40px;
+    }
+
+    .ribbon-seg {
+        padding: 0 6px;
+        gap: 5px;
+        border-radius: 10px;
+        font-size: 12px;
+    }
+
+    .ribbon-seg .seg-name {
+        font-size: 0;
+    }
+
+    .ribbon-seg .seg-name::after {
+        content: attr(data-short);
+        font-size: 12px;
+    }
+
+    body.clock-large #seconds {
+        font-size: 0.2em;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .ribbon-needle,
+    .ribbon-seg,
+    .ruler-ticks i::before {
+        transition-duration: 0.01ms;
+    }
+}
