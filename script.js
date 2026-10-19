@@ -24,6 +24,17 @@ let lastSyncTime = 0;
 let isSyncing = false;
 let currentBackgroundMode = 'automatico'; // 'automatico' o un valore di colore
 
+// "Mostra orario scolastico" (pillola) e "Orario scolastico in alto" (striscia) sono alternativi:
+// non possono essere attivi insieme (possono essere entrambi disattivati).
+// Se all'avvio risultano entrambi attivi (default o valori precedenti), resta attiva la striscia in alto.
+(function resolveScheduleToggleConflict() {
+    try {
+        const pillOn = localStorage.getItem('showSchedule') !== 'false';
+        const ribbonOn = localStorage.getItem('showDayRibbon') !== 'false';
+        if (pillOn && ribbonOn) localStorage.setItem('showSchedule', 'false');
+    } catch (e) { /* localStorage non disponibile */ }
+})();
+
 /* ============================================================================
  * FLAG FUNZIONI TEMPORANEAMENTE DISABILITATE
  * Per tornare allo stato originale, imposta i valori a `true` e ricarica.
@@ -2879,6 +2890,16 @@ document.addEventListener('DOMContentLoaded', function () {
         showScheduleToggle.addEventListener('change', (e) => {
             localStorage.setItem('showSchedule', e.target.checked);
             applyThemeToggleColor(e.target);
+            // Alternativo alla striscia in alto: se si attiva questo, l'altro si disattiva
+            if (e.target.checked) {
+                const ribbonToggle = document.getElementById('showDayRibbonToggle');
+                if (ribbonToggle && ribbonToggle.checked) {
+                    ribbonToggle.checked = false;
+                    localStorage.setItem('showDayRibbon', 'false');
+                    applyThemeToggleColor(ribbonToggle);
+                    updateDayRibbon(new Date(Date.now() + serverTimeOffset));
+                }
+            }
         });
     }
     if (animateBackgroundToggle) {
@@ -3596,6 +3617,15 @@ document.addEventListener('DOMContentLoaded', function () {
         showDayRibbonToggle.addEventListener('change', (e) => {
             localStorage.setItem('showDayRibbon', e.target.checked ? 'true' : 'false');
             applyThemeToggleColor(e.target);
+            // Alternativo a "Mostra orario scolastico": se si attiva questo, l'altro si disattiva
+            if (e.target.checked) {
+                const scheduleToggle = document.getElementById('showScheduleToggle');
+                if (scheduleToggle && scheduleToggle.checked) {
+                    scheduleToggle.checked = false;
+                    localStorage.setItem('showSchedule', 'false');
+                    applyThemeToggleColor(scheduleToggle);
+                }
+            }
             updateDayRibbon(new Date(Date.now() + serverTimeOffset));
         });
     }
