@@ -2301,7 +2301,6 @@ body.clock-large .date {
     --ribbon-h: clamp(40px, 5.4vh, 60px);
     --seg-bg: rgba(255, 255, 255, 0.55);
     --seg-fg: #1a1a1a;
-    --seg-line: rgba(0, 0, 0, 0.07);
     --needle: #1a1a1a;
     --needle-halo: rgba(255, 255, 255, 0.9);
     position: fixed;
@@ -2335,14 +2334,14 @@ body.clock-large .date {
     gap: 0.6em;
     padding: 0 clamp(8px, 1vw, 18px);
     border-radius: 14px;
-    border: 1.5px solid var(--seg-line);
+    border: 0;
     background: var(--seg-bg);
     color: var(--seg-fg);
     font-size: clamp(12px, 1.25vw, 22px);
     font-weight: 600;
     white-space: nowrap;
     overflow: hidden;
-    transition: background-color 0.6s ease, color 0.6s ease, opacity 0.6s ease, border-color 0.6s ease;
+    transition: background-color 0.6s ease, color 0.6s ease, box-shadow 0.6s ease;
 }
 
 .ribbon-seg::before {
@@ -2359,14 +2358,20 @@ body.clock-large .date {
     text-overflow: ellipsis;
 }
 
+/* Ore scorse: scurite con un velo interno e testo attenuato.
+   Niente opacity sul segmento, altrimenti sparirebbe anche il blur (backdrop-filter). */
 .ribbon-seg[data-state="past"] {
-    opacity: 0.42;
+    box-shadow: inset 0 0 0 100vmax rgba(0, 0, 0, 0.38);
+}
+
+.ribbon-seg[data-state="past"]::before,
+.ribbon-seg[data-state="past"] .seg-name {
+    opacity: 0.55;
 }
 
 .ribbon-seg[data-state="now"] {
     background: var(--m);
     color: var(--m-fg);
-    border-color: var(--m);
     font-weight: 700;
 }
 
@@ -2418,7 +2423,6 @@ body.stranger-things-theme .day-ribbon,
 body.halloween-theme .day-ribbon {
     --seg-bg: rgba(255, 255, 255, 0.2);
     --seg-fg: #ffffff;
-    --seg-line: rgba(255, 255, 255, 0.15);
     --needle: #ffffff;
     --needle-halo: rgba(0, 0, 0, 0.35);
 }
