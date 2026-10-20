@@ -11,7 +11,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-title" content="Clock" />
     <link rel="manifest" href="icons/site.webmanifest" />
-    <link rel="stylesheet" href="style.css?v=5.2">
+    <link rel="stylesheet" href="style.css?v=5.3">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap"
@@ -105,6 +105,13 @@
 
     <div id="githubIcon" class="icon-button">
         <i class="fab fa-github"></i>
+    </div>
+    <!-- v5.3: modalità focus (entra / esce) e ingrandimento rapido dell'orologio (solo in modalità focus) -->
+    <div id="focusIcon" class="icon-button" role="button" tabindex="0" aria-label="Modalità focus" title="Modalità focus">
+        <i class="fas fa-expand"></i>
+    </div>
+    <div id="focusSizeIcon" class="icon-button" role="button" tabindex="0" aria-label="Ingrandisci orologio" title="Ingrandisci orologio">
+        <i class="fas fa-magnifying-glass-plus"></i>
     </div>
     <div id="backIcon" class="icon-button">
         <i class="fas fa-arrow-left"></i>
@@ -597,7 +604,7 @@
             </div>
         </div>
 
-        <script src="script.js?v=5.2"></script>
+        <script src="script.js?v=5.3"></script>
 </body>
 
 </html>
