@@ -155,7 +155,7 @@ body {
 }
 
 #githubIcon {
-    right: 320px;
+    right: 380px;
     background-color: #333;
 }
 
@@ -2476,5 +2476,73 @@ body.halloween-theme .ruler {
     .ribbon-seg,
     .ruler-ticks i::before {
         transition-duration: 0.01ms;
+    }
+}
+
+
+/* ============================================================================
+   v5.3 — MODALITÀ FOCUS
+   - #focusIcon: verde come gli altri pulsanti, tra calendario e GitHub; in modalità focus
+     diventa il pulsante di uscita (frecce invertite) in basso a destra
+   - #focusSizeIcon: orologio grande/piccolo, visibile solo in modalità focus
+   - in modalità focus restano visibili solo l'orologio e questi due pulsanti;
+     lo sfondo (compresi i temi) non cambia
+   ============================================================================ */
+#focusIcon {
+    right: 320px;
+    background-color: #1b912b;
+}
+
+#focusSizeIcon {
+    right: 80px;
+    background-color: #1b912b;
+    display: none;
+}
+
+/* Colori reattivi ai temi a evento (stessa logica degli altri pulsanti) */
+body.christmas-theme #focusIcon,
+body.christmas-theme #focusSizeIcon {
+    background-color: #ffffff;
+    color: #dc2626;
+}
+
+body.stranger-things-theme #focusIcon,
+body.stranger-things-theme #focusSizeIcon {
+    background-color: #ffffff;
+    color: #800000;
+}
+
+body.halloween-theme #focusIcon,
+body.halloween-theme #focusSizeIcon {
+    background-color: #ffffff;
+    color: #7e22ce;
+}
+
+/* Elementi nascosti in modalità focus (sfondo e orologio restano) */
+body.focus-mode .icon-button:not(#focusIcon):not(#focusSizeIcon),
+body.focus-mode #status-pill,
+body.focus-mode #day-ribbon,
+body.focus-mode .ruler,
+body.focus-mode .date {
+    display: none !important;
+}
+
+/* Pulsante di uscita al posto di "info", pulsante dimensione alla sua sinistra */
+body.focus-mode #focusIcon {
+    right: 20px;
+}
+
+body.focus-mode #focusSizeIcon {
+    display: flex;
+}
+
+/* Mobile: GitHub, impostazioni e orario sono già nascosti, il focus prende il posto delle impostazioni */
+@media (max-width: 768px) {
+    #focusIcon {
+        right: 80px;
+    }
+
+    body.focus-mode #focusIcon {
+        right: 20px;
     }
 }
