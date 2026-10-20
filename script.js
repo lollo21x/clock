@@ -3571,7 +3571,7 @@ function fitClock() {
     if (!clock || !container || !document.body.classList.contains('clock-large')) return;
 
     const ribbon = document.getElementById('day-ribbon');
-    const ribbonVisible = ribbon && ribbon.dataset.visible === 'true';
+    const ribbonVisible = ribbon && ribbon.dataset.visible === 'true' && !document.body.classList.contains('focus-mode');
     const reserve = Math.max(ribbonVisible ? ribbon.offsetHeight + 40 : 0, 90);
     const availW = document.documentElement.clientWidth * 0.94;
     const availH = Math.max(120, window.innerHeight - 2 * reserve);
@@ -3639,4 +3639,79 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     const weightSel = document.getElementById('weightSelect');
     if (weightSel) weightSel.addEventListener('change', () => setTimeout(fitClock, 60));
+});
+
+
+/* ============================================================================
+ * v5.3 — MODALITÀ FOCUS
+ *   - #focusIcon: entra/esce dalla modalità focus (frecce verso l'esterno / verso l'interno)
+ *   - #focusSizeIcon: orologio grande/piccolo (visibile solo in modalità focus);
+ *     usa lo stesso interruttore "Orologio grande" delle Impostazioni, quindi le due cose restano allineate
+ *   - la visibilità degli elementi è gestita da style.css (body.focus-mode)
+ * ============================================================================ */
+document.addEventListener('DOMContentLoaded', function () {
+    const focusIcon = document.getElementById('focusIcon');
+    const sizeIcon = document.getElementById('focusSizeIcon');
+    if (!focusIcon || !sizeIcon) return;
+
+    function updateFocusUi() {
+        const on = document.body.classList.contains('focus-mode');
+        const large = document.body.classList.contains('clock-large');
+
+        const fi = focusIcon.querySelector('i');
+        if (fi) fi.className = on ? 'fas fa-compress' : 'fas fa-expand';
+        const focusLabel = on ? 'Esci dalla modalità focus' : 'Modalità focus';
+        focusIcon.setAttribute('aria-label', focusLabel);
+        focusIcon.title = focusLabel;
+
+        const si = sizeIcon.querySelector('i');
+        if (si) si.className = large ? 'fas fa-magnifying-glass-minus' : 'fas fa-magnifying-glass-plus';
+        const sizeLabel = large ? 'Riduci orologio' : 'Ingrandisci orologio';
+        sizeIcon.setAttribute('aria-label', sizeLabel);
+        sizeIcon.title = sizeLabel;
+    }
+
+    function setFocus(on) {
+        document.body.classList.toggle('focus-mode', on);
+        updateFocusUi();
+        // il layout dell'orologio grande dipende dallo spazio disponibile
+        if (typeof fitClock === 'function') {
+            fitClock();
+            setTimeout(fitClock, 120);
+        }
+    }
+
+    function toggleClockSize() {
+        const toggle = document.getElementById('largeClockToggle');
+        if (toggle) {
+            // riusa il gestore esistente: salva la preferenza, aggiorna la classe e ricalcola le dimensioni
+            toggle.checked = !document.body.classList.contains('clock-large');
+            toggle.dispatchEvent(new Event('change'));
+        } else {
+            const next = !document.body.classList.contains('clock-large');
+            localStorage.setItem('clockLarge', next ? 'true' : 'false');
+            document.body.classList.toggle('clock-large', next);
+            if (typeof fitClock === 'function') {
+                fitClock();
+                setTimeout(fitClock, 120);
+            }
+        }
+        updateFocusUi();
+    }
+
+    function onKey(handler) {
+        return function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handler();
+            }
+        };
+    }
+
+    focusIcon.addEventListener('click', () => setFocus(!document.body.classList.contains('focus-mode')));
+    focusIcon.addEventListener('keydown', onKey(() => setFocus(!document.body.classList.contains('focus-mode'))));
+    sizeIcon.addEventListener('click', toggleClockSize);
+    sizeIcon.addEventListener('keydown', onKey(toggleClockSize));
+
+    updateFocusUi();
 });
